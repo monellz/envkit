@@ -15,7 +15,13 @@ info "Base Dir: $BASE_DIR"
 
 # dotfiles links
 link ${BASE_DIR}/.vimrc ~/.vimrc
+
 link ${BASE_DIR}/.gitconfig ~/.gitconfig
-link ${BASE_DIR}/hyprland.conf ~/.config/hypr/hyprland.conf
-link ${BASE_DIR}/waybar/config.jsonc ~/.config/waybar/config.jsonc
+
 link ${BASE_DIR}/ssh/config ~/.ssh/config
+
+link ${BASE_DIR}/hypr/hyprland.conf ~/.config/hypr/hyprland.conf
+
+link ${BASE_DIR}/waybar/config.jsonc ~/.config/waybar/config.jsonc
+link ${BASE_DIR}/waybar/style.css ~/.config/waybar/style.css
+
