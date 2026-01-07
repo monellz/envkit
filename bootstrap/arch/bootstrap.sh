@@ -73,9 +73,11 @@ copy $SHELL_DIR/etc/systemd/network/20-wired.network /etc/systemd/network/20-wir
 copy $SHELL_DIR/etc/systemd/network/20-wireless.network /etc/systemd/network/20-wireless.network
 systemctl enable systemd-networkd
 systemctl enable systemd-resolved
+systemctl enable iwd
 
 info "Grub install"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=ARCH
+copy $SHELL_DIR/etc/default/grub /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
 
 info "Setup sudoer"
