@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# this script should be run by root 
-# available network is necessary
-
 # init
 SHELL_DIR=$(dirname $(readlink -f "$0"))
 PROJECT_DIR=$(dirname $(dirname $SHELL_DIR))
@@ -11,6 +8,13 @@ SCRIPTS_DIR=$PROJECT_DIR/scripts
 . ${SCRIPTS_DIR}/color.sh
 . ${SCRIPTS_DIR}/log.sh
 . ${SCRIPTS_DIR}/func.sh
+
+# this script should be run by root 
+# available network is necessary
+if [[ "$EUID" -ne 0 ]]; then
+    error "This script should be run by root"    
+    exit -1
+fi
 
 
 SNAPSHOTS_DIR=/.snapshots
