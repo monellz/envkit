@@ -25,8 +25,9 @@ USE_SUDO=1 link $SHELL_DIR/etc/pacman.d/mirrorlist  /etc/pacman.d/mirrorlist
 
 
 # no bell
-sudo rmmod pcspkr || true
-USE_SUDO=1 link $SHELL_DIR/etc/modprobe.d/nobeep.conf /etc/modprobe.d/nobeep.conf
+# sudo rmmod pcspkr || true
+# /etc/modprobe.d/* should not be softlink so we do it in bootstrap.sh
+# USE_SUDO=1 link $SHELL_DIR/etc/modprobe.d/nobeep.conf /etc/modprobe.d/nobeep.conf
 
 
 # necessary packages
