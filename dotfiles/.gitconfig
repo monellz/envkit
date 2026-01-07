@@ -1,0 +1,9 @@
+[user]
+    name = monellz
+    email = rxzhong@outlook.com
+
+[commit]
+    gpgsign = false
+
+[init]
+    defaultBranch = main

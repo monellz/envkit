@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -e
+
+BASE_DIR="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+DATE="$(date +%Y%m%d-%H%M%S)"
+
+echo "Base Dir: ${BASE_DIR}"
+
+# color setup
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+    C_RESET='\033[0m'
+    C_RED='\033[31m'
+    C_GREEN='\033[32m'
+    C_YELLOW='\033[33m'
+    C_BLUE='\033[34m'
+    C_DIM='\033[2m'
+else
+    C_RESET=''
+    C_RED=''
+    C_GREEN=''
+    C_YELLOW=''
+    C_BLUE=''
+    C_DIM=''
+fi
+
+info() { echo -e "${C_BLUE}===>${C_RESET} $*"; }
+success() { echo -e "${C_GREEN}[OK]${C_RESET} $*"; }
+warn() { echo -e "${C_YELLOW}[WARN]${C_RESET} $*"; }
+error() { echo -e "${C_RED}$[ERR]${C_RESET} $*" >&2; }
+
+link() {
+    local src="$BASE_DIR/$1"
+    local dst="$2"
+    local dst_parent="$(dirname "$dst")"
+
+    if [ ! -e "$src" ]; then
+        warn "$src: Skip due to source missing"
+        return 0
+    fi
+
+    if [ ! -d "$dst_parent" ]; then
+        warn "Creating directory $dst_parent"
+        mkdir -p $dst_parent
+    fi
+
+    if [ -L "$dst" ]; then
+        local target="$(readlink $dst)"
+        if [ "$target" = "$src" ]; then
+            success "$src -> $dst: Already correctly linked"
+           return 0
+        fi
+	    warn "Backing up symlink: $dst -> $dst.bak.$DATE"
+	    mv "$dst" "$dst.bak.$DATE"
+    elif [ -e "$dst" ]; then
+	    warn "Backing up existing file: $dst -> $dst.bak.$DATE"
+	    mv "$dst" "$dst.bak.$DATE"
+    fi
+    ln -sf "$src" "$dst"
+    success "$src -> $dst: Linked"
+}
+
+
+# dotfiles links
+link .vimrc ~/.vimrc
+link .gitconfig ~/.gitconfig
+link hyprland.conf ~/.config/hypr/hyprland.conf
+link waybar/config.jsonc ~/.config/waybar/config.jsonc
+link ssh/config ~/.ssh/config
