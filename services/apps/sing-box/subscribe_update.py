@@ -284,6 +284,9 @@ if __name__ == "__main__":
 
   os.makedirs(config_dir, exist_ok=True)
 
+  if args.link is not None:
+    with open(os.path.join(config_dir, "link.txt"), 'w') as f:
+      f.write(args.link)
   if args.content_fn is not None:
     with open(os.path.join(config_dir, args.content_fn), 'w') as f:
       f.write(str(content))
