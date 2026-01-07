@@ -67,10 +67,15 @@ fi
 info "Setup network"
 copy $SHELL_DIR/etc/systemd/network/20-wired.network /etc/systemd/network/20-wired.network
 copy $SHELL_DIR/etc/systemd/network/20-wireless.network /etc/systemd/network/20-wireless.network
+systemctl enable systemd-networkd
+systemctl enable systemd-resolved
 
 info "Grub install"
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=ARCH
 grub-mkconfig -o /boot/grub/grub.cfg
+
+info "Setup sudoer"
+copy $SHELL_DIR/etc/sudoers.d/10-wheel-nopasswd /etc/sudoers.d/10-wheel-nopasswd
 
 info "Create user"
 useradd -m -G wheel,audio,video,input,storage -s /bin/bash zrx || true
