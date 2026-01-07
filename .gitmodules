@@ -1,0 +1,6 @@
+[submodule "services/apps/auth-thu/auth-thu-src"]
+	path = services/apps/auth-thu/auth-thu-src
+	url = https://github.com/z4yx/GoAuthing.git
+[submodule "services/apps/sing-box/sing-box-src"]
+	path = services/apps/sing-box/sing-box-src
+	url = https://github.com/SagerNet/sing-box.git

@@ -1,0 +1,100 @@
+name: my
+services:
+  auth-thu-deauth:
+    build:
+      context: ./apps/auth-thu
+      dockerfile: Dockerfile
+    container_name: auth-thu-deauth
+    network_mode: host
+    volumes:
+      - ./logs/auth-thu:/log
+      - ./configs/auth-thu:/conf
+    command: ["deauth"]
+
+  auth-thu:
+    build:
+      context: ./apps/auth-thu
+      dockerfile: Dockerfile
+    container_name: auth-thu
+    network_mode: host
+    volumes:
+      - ./logs/auth-thu:/log
+      - ./configs/auth-thu:/conf
+    command: ["-c", "/conf/auth-thu.json", "auth", "-k"]
+    restart: always
+    depends_on:
+      auth-thu-deauth:
+        condition: service_completed_successfully
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./configs/nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - 80:80
+  
+  sing-box:
+    build:
+      context: ./apps/sing-box
+      dockerfile: Dockerfile
+    container_name: sing-box
+    network_mode: host
+    volumes:
+      - ./configs/sing-box:/conf
+    devices:
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - CONFIG_PATH=/conf/sing-box.json
+
+  gotify:
+    image: ghcr.io/gotify/server:latest
+    container_name: gotify
+    expose: 
+      - 80
+    environment:
+      - TZ="Asia/Shanghai"
+    volumes:
+      - ./configs/gotify:/etc/gotify
+      - ./data/gotify/data:/app/data
+
+  qbit:
+    image: qbittorrentofficial/qbittorrent-nox:latest
+    container_name: qbit
+    environment:
+      - QBT_LEGAL_NOTICE=confirm
+      - QBT_WEBUI_PORT=8080
+    ports:
+      # for bittorrent traffic
+      - 6881:6881/tcp
+      - 6881:6881/udp
+      - 8080:8080
+    network_mode: host
+    #expose:
+    #  # for WebUI
+    #  - 8080
+    read_only: true
+    stop_grace_period: 30m
+    tmpfs:
+      - /tmp
+    tty: true
+    volumes:
+      - ./configs/qbt:/config
+      - ./data/qbt/downloads:/downloads
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+    ports:
+      - 43333:8096
+    #network_mode: host
+    volumes:
+      - /home/zrx/disk/jellyfin/config:/config
+      - /home/zrx/disk/media/movies:/data/movies
+
