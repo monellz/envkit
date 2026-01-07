@@ -11,6 +11,8 @@ SCRIPTS_DIR=$PROJECT_DIR/scripts
 . ${SCRIPTS_DIR}/log.sh
 . ${SCRIPTS_DIR}/func.sh
 
+# hostname
+hostnamectl hostname myarch
 
 # network dns
 sudo systemctl enable --now systemd-networkd
@@ -23,8 +25,7 @@ USE_SUDO=1 link $SHELL_DIR/etc/pacman.d/mirrorlist  /etc/pacman.d/mirrorlist
 
 
 # no bell
-# sudo rmmod pcspkr
-# sudo rmmod snd_pcsp
+sudo rmmod pcspkr || true
 USE_SUDO=1 link $SHELL_DIR/etc/modprobe.d/nobeep.conf /etc/modprobe.d/nobeep.conf
 
 
