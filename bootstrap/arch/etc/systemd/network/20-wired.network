@@ -9,6 +9,10 @@ RequiredForOnline=routable
 DHCP=yes
 MulticastDNS=yes
 
+# ref: https://thu.services/services/#systemd-networkd-ipv4
+[DHCP]
+ClientIdentifier=mac
+
 [DHCPv4]
 RouteMetric=200
 
