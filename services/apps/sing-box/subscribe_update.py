@@ -7,6 +7,27 @@ def fetch_link(url):
   ret = urlopen(req).read()
   return ret
 
+def classify_nodes(nodes):
+  categories = {
+    "hmt": ["香港", "澳门", "台湾"],
+    "asia": ["日本", "新加坡"],
+    "americas": ["美国"],
+  }
+  results = {key: [] for key in categories.keys()}
+  results["others"] = []
+  results["all"] = nodes
+  for node in nodes:
+    classified = False
+    for cat, keywords in categories.items():
+      if any(keyword in node['name'] for keyword in keywords):
+        results[cat].append(node)
+        classified = True
+        break
+    if not classified:
+        results["others"].append(node)
+       
+  return results
+
 def parse_link(content):
   from base64 import b64decode
   share_links = b64decode(content).decode('utf-8').splitlines()
@@ -44,7 +65,7 @@ def parse_link(content):
       raise NotImplementedError(f"unknown protocol: {protocol}, link: {link}")
 
     nodes.append(node)
-
+  
   return nodes 
 
 def generate_singbox_config(nodes):
@@ -89,7 +110,7 @@ def generate_singbox_config(nodes):
           "tag": "cloudflare",
           "address": "https://1.1.1.1/dns-query",
           "strategy": "prefer_ipv4",
-          "detour": "select",
+          "detour": "proxy",
         }
         # {
         #   "tag": "google",
@@ -152,20 +173,61 @@ def generate_singbox_config(nodes):
       },
     ],
     "outbounds": [
-      # urltest需要为第一个，后面直接[0]就是urltest
       {
-        "tag": "urltest",
+        "tag": "fastest",
         "type": "urltest",
-        "outbounds": [], # FIXME: 需要后续自行添加
+        "outbounds": [],
       },
       {
-        "tag": "select",
-        "type": "selector", # 选择一个tag对应的代理出站
+        "tag": "fastest_in_hmt",
+        "type": "urltest",
+        "outbounds": [],
+      },
+      {
+        "tag": "fastest_in_asia",
+        "type": "urltest",
+        "outbounds": [],
+      },
+      {
+        "tag": "fastest_in_americas",
+        "type": "urltest",
+        "outbounds": [],
+      },
+      {
+        "tag": "proxy",
+        "type": "selector",
         "outbounds": [
           "direct",
-          "urltest",
+          "fastest",
         ],
-        "default": "urltest",
+        "default": "fastest",
+      },
+      {
+        "tag": "proxy_by_hmt",
+        "type": "selector",
+        "outbounds": [
+          "direct",
+          "fastest_in_hmt",
+        ],
+        "default": "fastest_in_hmt",
+      },
+      {
+        "tag": "proxy_by_asia",
+        "type": "selector",
+        "outbounds": [
+          "direct",
+          "fastest_in_asia",
+        ],
+        "default": "fastest_in_asia",
+      },
+      {
+        "tag": "proxy_by_americas",
+        "type": "selector",
+        "outbounds": [
+          "direct",
+          "fastest_in_americas",
+        ],
+        "default": "fastest_in_americas",
       },
       {
         "tag": "direct",
@@ -193,15 +255,23 @@ def generate_singbox_config(nodes):
         },
         {
             "clash_mode": "global",
-            "outbound": "select"
+            "outbound": "proxy"
         },
         {
-            "rule_set": "geoip-cn",
+            "rule_set": "geosite-geolocation-cn",
             "outbound": "direct",
         },
         {
-            "rule_set": "geoip-us",
-            "outbound": "select",
+            "rule_set": "geosite-category-ai-!cn",
+            "outbound": "proxy_by_asia",
+        },
+        {
+            "rule_set": "geosite-category-ai-chat-!cn",
+            "outbound": "proxy_by_asia",
+        },
+        {
+            "rule_set": "geosite-geolocation-!cn",
+            "outbound": "proxy",
         },
       ],
       "rule_set": [
@@ -210,6 +280,27 @@ def generate_singbox_config(nodes):
           "type": "remote",
           "format": "binary",
           "url": f"{github_proxy_url}/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+          "download_detour": "direct"
+        },
+        {
+          "tag": "geosite-geolocation-cn",
+          "type": "remote",
+          "format": "binary",
+          "url": f"{github_proxy_url}/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-cn.srs",
+          "download_detour": "direct"
+        },
+        {
+          "tag": "geosite-category-ai-!cn",
+          "type": "remote",
+          "format": "binary",
+          "url": f"{github_proxy_url}/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ai-!cn.srs",
+          "download_detour": "direct"
+        },
+        {
+          "tag": "geosite-category-ai-chat-!cn",
+          "type": "remote",
+          "format": "binary",
+          "url": f"{github_proxy_url}/https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ai-chat-!cn.srs",
           "download_detour": "direct"
         },
         {
@@ -229,8 +320,7 @@ def generate_singbox_config(nodes):
       ]
     },
   }
-
-  for node in nodes:
+  for node in nodes['all']:
     if node['protocol'] == 'trojan':
       outbound = {
         'tag': node['name'],
@@ -245,28 +335,48 @@ def generate_singbox_config(nodes):
         }
       }
       config['outbounds'].append(outbound)
-      # 0是urltest
+
+      # fastest
       config['outbounds'][0]['outbounds'].append(node['name'])
     else:
       raise NotImplementedError(f"unknown protocol: {node['protocol']}")
+
+  # fastest_in_hmt
+  for node in nodes['hmt']:
+    config['outbounds'][1]['outbounds'].append(node['name'])
+
+  # fastest_in_asia
+  for node in nodes['asia']:
+    config['outbounds'][2]['outbounds'].append(node['name'])
+
+  # fastest_in_americas
+  for node in nodes['americas']:
+    config['outbounds'][3]['outbounds'].append(node['name'])
   
   return config
 
 if __name__ == "__main__":
+  # ip addr test: https://whatismyipaddress.com/
   parser = argparse.ArgumentParser(description="Update the airport link")
   parser.add_argument("--link", type=str, help="The link to update", default=None)
   parser.add_argument("--content", type=str, help="The content of the link", default=None)
-  parser.add_argument("--content_fn", type=str, help="The path to the content file", default="content.txt")
+  parser.add_argument("--content_fn", type=str, help="The path to the content file", default="content.bin")
   parser.add_argument("--config_fn", type=str, help="The path to the config file", default="sing-box.json")
   args = parser.parse_args()
 
   if args.content is not None:
-    content = args.content
-    nodes = parse_link(args.content.encode('utf-8'))
+    with open(args.content, 'rb') as f:
+        content = f.read()
+    print(f"{content=}")
+    nodes = parse_link(content)
+    nodes = classify_nodes(nodes)
+    print(f"{nodes=}")
   elif args.link is not None:
     content = fetch_link(args.link)
     print(f"{content=}")
     nodes = parse_link(content)
+    nodes = classify_nodes(nodes)
+    print(f"{nodes=}")
   else:
     raise ValueError("Either --link or --content must be provided")
   
@@ -288,8 +398,8 @@ if __name__ == "__main__":
     with open(os.path.join(config_dir, "link.txt"), 'w') as f:
       f.write(args.link)
   if args.content_fn is not None:
-    with open(os.path.join(config_dir, args.content_fn), 'w') as f:
-      f.write(str(content))
+    with open(os.path.join(config_dir, args.content_fn), 'wb') as f:
+      f.write(content)
   if args.config_fn is not None:
     with open(os.path.join(config_dir, args.config_fn), 'w') as f:
       f.write(json_str)
