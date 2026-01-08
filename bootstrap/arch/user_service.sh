@@ -23,3 +23,9 @@ ssh-add ~/.ssh/id_rsa
 systemctl --user enable --now pipiewire-pulse
 warn "Reboot is needed to make sound work well"
 
+
+sudo pacman -S sddm
+# sudo systemctl get-default
+# it should have been graphical
+# sudo systemctl set-default graphical.target
+sudo systemctl enable --now sddm
