@@ -3,15 +3,20 @@ set -euo pipefail
 
 # fonts
 sudo pacman -S nerd-fonts
-# chinese
-sudo pacman -S noto-fonts noto-fonts-cjk
+# basic
+sudo pacman -S noto-fonts noto-fonts-cjk noto-fonts-emoji
 # for simplified chinese
 sudo pacman -S adobe-source-han-sans-cn-fonts
 # sudo yay -S noto-fonts-sc
+# update font cache
+# fc-cache -vf
 
 # wm
 sudo pacman -S hyprland
 sudo pacman -S waybar
+
+# login
+sudo pacman -S sddm
 
 # file manager
 sudo pacman -S yazi
@@ -33,5 +38,5 @@ sudo pacman -S fcitx5-im fcitx5-rime
 sudo pacman -S brightnessctl
 
 # tool
-sudo pacman -S btop
+sudo pacman -S btop bat
 

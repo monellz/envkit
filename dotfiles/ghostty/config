@@ -1,0 +1,3 @@
+# see https://ghostty.org/docs/help/terminfo
+shell-integration-features = sudo
+shell-integration-features = ssh-terminfo,ssh-env
