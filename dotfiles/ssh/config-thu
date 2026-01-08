@@ -1,0 +1,100 @@
+Host *
+    AddKeysToAgent yes
+
+Host jumper
+    HostName 166.111.236.65
+    User zhongrx
+    Port 2222
+    ForwardAgent yes
+    ForwardX11 yes
+
+Host yes-outer
+    HostName yes
+    User zhongrx
+    Port 22
+    ProxyJump jumper
+    ForwardAgent yes
+    ForwardX11 yes
+    RemoteForward 9870 127.0.0.1:7890
+
+Host spack-yes-outer
+    HostName yes
+    User spack
+    Port 22
+    ProxyJump jumper
+    ForwardAgent yes
+    ForwardX11 yes
+    RemoteForward 9870 127.0.0.1:7890
+
+
+Host yes
+    HostName yes
+    User zhongrx
+    Port 22
+    ForwardAgent yes
+    ForwardX11 yes
+    RemoteForward 9870 127.0.0.1:7890
+
+Host conv
+    HostName 166.111.68.163
+    User 2017010306
+    ForwardAgent yes
+    Port 22222
+
+Host fuse
+    Hostname 172.23.36.0
+    Port 22
+    User zhongrx
+    ProxyJump jumper
+    ForwardAgent yes
+    RemoteForward 9870 127.0.0.1:7890
+
+Host fuse-spack
+    Hostname 172.23.36.0
+    Port 22
+    User spack 
+    ProxyJump jumper
+    RemoteForward 9870 127.0.0.1:7890
+
+Host fit
+    Hostname 166.111.143.25
+    User zhaijd
+    ProxyJump jumper
+    RemoteForward 9870 127.0.0.1:7890
+    ForwardAgent yes
+
+Host fit-zrx
+    Hostname 166.111.143.25
+    User zhaijdzrx
+    ProxyJump jumper
+    RemoteForward 9870 127.0.0.1:7890
+    ForwardAgent yes
+
+
+Host fit-zhaijd1
+    Hostname 166.111.143.25
+    User zhaijd1
+    ProxyJump jumper
+    RemoteForward 9870 127.0.0.1:7890
+    ForwardAgent yes
+
+Host fit-zhaijd2
+    Hostname 166.111.143.25
+    User zhaijd2
+    ProxyJump jumper
+    RemoteForward 9870 127.0.0.1:7890
+
+Host fit-zhaijd3
+    Hostname 166.111.143.25
+    User zhaijd3
+    ProxyJump jumper
+    ForwardAgent yes
+    RemoteForward 9870 127.0.0.1:7890
+
+Host fit-class
+    Hostname 166.111.143.25
+    ProxyJump jumper
+    User zhaijdclass
+    ForwardAgent yes
+
+

@@ -1,5 +1,7 @@
-# For local config
+# For local/private config
 Include ~/.ssh/config.local
+
+Include ~/.ssh/config-thu
 
 Host *
     AddKeysToAgent yes
