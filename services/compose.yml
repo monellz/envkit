@@ -1,4 +1,13 @@
 name: my
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  proxy:
+    driver: bridge
+
 services:
   auth-thu-deauth:
     build:
@@ -7,7 +16,6 @@ services:
     container_name: auth-thu-deauth
     network_mode: host
     volumes:
-      - ./logs/auth-thu:/log
       - ./configs/auth-thu:/conf
     command: ["deauth"]
 
@@ -26,14 +34,6 @@ services:
       auth-thu-deauth:
         condition: service_completed_successfully
 
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    volumes:
-      - ./configs/nginx/conf.d:/etc/nginx/conf.d:ro
-    ports:
-      - 80:80
-  
   sing-box:
     build:
       context: ./apps/sing-box
@@ -49,16 +49,18 @@ services:
     environment:
       - CONFIG_PATH=/conf/sing-box.json
 
-  gotify:
-    image: ghcr.io/gotify/server:latest
-    container_name: gotify
-    expose: 
-      - 80
-    environment:
-      - TZ="Asia/Shanghai"
+  caddy:
+    build:
+      context: ./apps/caddy
+      dockerfile: Dockerfile
+      network: host
+    container_name: caddy
+    network_mode: host
     volumes:
-      - ./configs/gotify:/etc/gotify
-      - ./data/gotify/data:/app/data
+      - ./configs/caddy:/etc/caddy
+      - ${DISK_ROOT:-${HOME}/disk}/webdav:/srv/webdav
+      - caddy_data:/data
+      - caddy_config:/config
 
   qbit:
     image: qbittorrentofficial/qbittorrent-nox:latest
@@ -68,21 +70,18 @@ services:
       - QBT_WEBUI_PORT=8080
     ports:
       # for bittorrent traffic
-      - 6881:6881/tcp
-      - 6881:6881/udp
-      - 8080:8080
-    network_mode: host
-    #expose:
-    #  # for WebUI
-    #  - 8080
+      # - 6881:6881/tcp
+      # - 6881:6881/udp
+      - 127.0.0.1:8080:8080
+    networks: [proxy]
     read_only: true
     stop_grace_period: 30m
     tmpfs:
       - /tmp
     tty: true
     volumes:
-      - ./configs/qbt:/config
-      - ./data/qbt/downloads:/downloads
+      - ${DISK_ROOT:-${HOME}/disk}/qbit/config:/config
+      - ${DISK_ROOT:-${HOME}/disk}/qbit/downloads:/downloads
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
@@ -92,9 +91,23 @@ services:
       - PGID=1000
       - TZ=Asia/Shanghai
     ports:
-      - 43333:8096
-    #network_mode: host
+      - 127.0.0.1:8081:8096
+    networks: [proxy]
     volumes:
-      - /home/zrx/disk/jellyfin/config:/config
-      - /home/zrx/disk/media/movies:/data/movies
-
+      - ${DISK_ROOT:-${HOME}/disk}/jellyfin/config:/config
+      - ${DISK_ROOT:-${HOME}/disk}/media/movies:/data/movies
+  
+  vault:
+    image: vaultwarden/server:latest
+    container_name: vault
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://166.111.238.16:8443"
+      SIGNUPS_ALLOWED: "false"
+      LOG_LEVEL: "debug"
+    volumes:
+      - ${DISK_ROOT:-${HOME}/disk}/vaultwarden:/data
+    env_file:
+      - container-vars.env
+    ports:
+      - 127.0.0.1:8082:80
