@@ -26,7 +26,6 @@ services:
     container_name: auth-thu
     network_mode: host
     volumes:
-      - ./logs/auth-thu:/log
       - ./configs/auth-thu:/conf
     command: ["-c", "/conf/auth-thu.json", "auth", "-k"]
     restart: always
