@@ -19,7 +19,6 @@ link ${BASE_DIR}/.vimrc ~/.vimrc
 link ${BASE_DIR}/.gitconfig ~/.gitconfig
 
 link ${BASE_DIR}/ssh/config ~/.ssh/config
-link ${BASE_DIR}/ssh/config-thu ~/.ssh/config-thu
 
 link ${BASE_DIR}/ghostty/config ~/.config/ghostty/config
 
