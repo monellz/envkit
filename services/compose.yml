@@ -39,6 +39,7 @@ services:
       dockerfile: Dockerfile
     container_name: sing-box
     network_mode: host
+    restart: always
     volumes:
       - ./apps/sing-box:/conf
     devices:

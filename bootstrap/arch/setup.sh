@@ -41,6 +41,7 @@ sudo pacman -S --noconfirm docker docker-compose
 sudo systemctl enable --now docker.service
 sudo usermod -aG docker $USER
 warn "Reboot is needed to correctly enable docker (verify by docker info)"
+USE_SUDO=1 link $SHELL_DIR/etc/systemd/system/docker.service /etc/systemd/system/docker.service
 USE_SUDO=1 link $SHELL_DIR/etc/docker/daemon.json /etc/docker/daemon.json
 sudo systemctl daemon-reload
 sudo systemctl restart docker
