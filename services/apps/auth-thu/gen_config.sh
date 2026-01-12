@@ -21,9 +21,7 @@ if [[ "$DEBUG" != "true" && "$DEBUG" != "false" ]]; then
 fi
 
 
-CONFIG_DIR=$PROJECT_DIR/services/configs/auth-thu
-mkdir -p $CONFIG_DIR
-OUTPUT_DIR=$CONFIG_DIR/auth-thu.json
+OUTPUT_DIR=$PROJECT_DIR/services/apps/auth-thu/auth-thu.json
 
 cat <<EOF > "$OUTPUT_DIR"
 {

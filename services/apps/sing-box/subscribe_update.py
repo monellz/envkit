@@ -388,18 +388,18 @@ if __name__ == "__main__":
 
   script_path = os.path.abspath(__file__)
   project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(script_path))))
-  config_dir = os.path.join(project_dir, "services", "configs", "sing-box")
+  output_dir = os.path.join(project_dir, "services", "apps", "sing-box")
   print(f"{project_dir=}")
-  print(f"{config_dir=}")
+  print(f"{output_dir=}")
 
   os.makedirs(config_dir, exist_ok=True)
 
   if args.link is not None:
-    with open(os.path.join(config_dir, "link.txt"), 'w') as f:
+    with open(os.path.join(output_dir, "link.txt"), 'w') as f:
       f.write(args.link)
   if args.content_fn is not None:
-    with open(os.path.join(config_dir, args.content_fn), 'wb') as f:
+    with open(os.path.join(output_dir, args.content_fn), 'wb') as f:
       f.write(content)
   if args.config_fn is not None:
-    with open(os.path.join(config_dir, args.config_fn), 'w') as f:
+    with open(os.path.join(output_dir, args.config_fn), 'w') as f:
       f.write(json_str)

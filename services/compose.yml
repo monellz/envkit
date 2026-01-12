@@ -16,7 +16,7 @@ services:
     container_name: auth-thu-deauth
     network_mode: host
     volumes:
-      - ./configs/auth-thu:/conf
+      - ./apps/auth-thu:/conf
     command: ["deauth"]
 
   auth-thu:
@@ -26,7 +26,7 @@ services:
     container_name: auth-thu
     network_mode: host
     volumes:
-      - ./configs/auth-thu:/conf
+      - ./apps/auth-thu:/conf
     command: ["-c", "/conf/auth-thu.json", "auth", "-k"]
     restart: always
     depends_on:
@@ -40,7 +40,7 @@ services:
     container_name: sing-box
     network_mode: host
     volumes:
-      - ./configs/sing-box:/conf
+      - ./apps/sing-box:/conf
     devices:
       - /dev/net/tun
     cap_add:
@@ -56,7 +56,7 @@ services:
     container_name: caddy
     network_mode: host
     volumes:
-      - ./configs/caddy:/etc/caddy
+      - ./apps/caddy:/etc/caddy
       - ${DISK_ROOT:-${HOME}/disk}/webdav:/srv/webdav
       - caddy_data:/data
       - caddy_config:/config

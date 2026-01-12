@@ -1,1 +1,3 @@
 dotfiles/ssh/config filter=crypt
+services/apps/auth-thu/auth-thu.json filter=crypt
+services/apps/sing-box/sing-box.json filter=crypt
