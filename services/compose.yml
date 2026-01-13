@@ -107,7 +107,5 @@ services:
       LOG_LEVEL: "debug"
     volumes:
       - ${DISK_ROOT:-${HOME}/disk}/vaultwarden:/data
-    env_file:
-      - container-vars.env
     ports:
       - 127.0.0.1:8082:80

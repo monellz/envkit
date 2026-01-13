@@ -24,6 +24,11 @@ https://166.111.238.16:8443 {
         }
         webdav
     }
+
+    redir /jellyfin /jellyfin/
+    handle_path /jellyfin/* {
+        reverse_proxy 127.0.0.1:8081
+    }
     
     redir /vault /vault/
     handle_path /vault/* {
