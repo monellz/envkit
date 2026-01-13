@@ -13,8 +13,8 @@ SCRIPTS_DIR=$PROJECT_DIR/scripts
 
 info "Set git config"
 
-git config filter.crypt.clean  'openssl enc -aes-256-cbc -nosalt -pbkdf2 -pass env:PASS'
-git config filter.crypt.smudge 'openssl enc -d -aes-256-cbc -nosalt -pbkdf2 -pass env:PASS'
+git config filter.crypt.clean  'openssl enc -aes-256-cbc -salt -pbkdf2 -pass env:PASS'
+git config filter.crypt.smudge 'openssl enc -d -aes-256-cbc -salt -pbkdf2 -pass env:PASS'
 git config filter.crypt.required true
 
 
@@ -34,8 +34,8 @@ list_crypt_files | tr '\0' '\n'
 
 warn "Update workspace by removing then checkouting encrypted files"
 while IFS= read -r -d '' f; do
-  rm -f -- "${PROJECT_DIR}/$f"
-  git -C "${PROJECT_DIR}" checkout -- "$f"
+  # rm -f -- "${PROJECT_DIR}/$f"
+  git -C "${PROJECT_DIR}" add -- "$f"
 done < <(list_crypt_files)
 ok "Finished"
 
