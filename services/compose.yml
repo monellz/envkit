@@ -104,6 +104,8 @@ services:
       DOMAIN: "https://166.111.238.16:8443/vault"
       SIGNUPS_ALLOWED: "false"
       LOG_LEVEL: "debug"
+    env_file:
+      - ./secret-vars.env
     volumes:
       - ${DISK_ROOT:-${HOME}/disk}/vaultwarden:/data
     ports:

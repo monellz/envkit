@@ -3,3 +3,4 @@
 dotfiles/ssh/config filter=git-crypt diff=git-crypt
 services/apps/auth-thu/auth-thu.json filter=git-crypt diff=git-crypt
 services/apps/sing-box/sing-box.json filter=git-crypt diff=git-crypt
+services/secret-vars.env filter=git-crypt diff=git-crypt
