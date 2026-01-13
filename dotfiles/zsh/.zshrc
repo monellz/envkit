@@ -11,6 +11,9 @@ bindkey "\e[B" history-beginning-search-forward
 
 setopt autocd
 
+# vim mode
+bindkey -v
+
 autoload -Uz compinit; compinit
 
 alias l='ls -lah --color=auto'
