@@ -108,3 +108,4 @@ services:
       - ${DISK_ROOT:-${HOME}/disk}/vaultwarden:/data
     ports:
       - 127.0.0.1:8082:80
+    networks: [proxy]
