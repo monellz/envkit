@@ -14,6 +14,8 @@ SCRIPTS_DIR=$PROJECT_DIR/scripts
 
 ITEM_ID=5a22ab82-39b8-4169-b77c-a32287cbd28e
 
+bw config server https://166.111.238.16:8443/vault
+
 bw login || true
 
 bw get attachment git-crypt.key --itemid $ITEM_ID --output ${PROJECT_DIR}/
