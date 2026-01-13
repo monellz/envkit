@@ -11,13 +11,13 @@ bindkey "\e[B" history-beginning-search-forward
 
 setopt autocd
 
-autoload -U compinit; compinit
+autoload -Uz compinit; compinit
 
-alias l='ls -lah'
-alias la='ls -lAh'
-alias ll='ls -lh'
-alias ls='ls -G'
-alias lsa='ls -lah'
+alias l='ls -lah --color=auto'
+alias la='ls -lAh --color=auto'
+alias ll='ls -lh --color=auto'
+alias ls='ls -G --color=auto'
+alias lsa='ls -lah --color=auto'
 
 source <(fzf --zsh)
 eval "$(zoxide init zsh)"

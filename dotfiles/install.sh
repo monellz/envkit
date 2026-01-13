@@ -14,7 +14,8 @@ BASE_DIR=$SHELL_DIR
 info "Base Dir: $BASE_DIR"
 
 # dotfiles links
-link ${BASE_DIR}/.zshrc ~/.zshrc
+link ${BASE_DIR}/zsh/.zshrc ~/.zshrc
+link ${BASE_DIR}/zsh/.zshenv ~/.zshenv
 
 link ${BASE_DIR}/.vimrc ~/.vimrc
 
