@@ -10,7 +10,7 @@ SCRIPTS_DIR=$PROJECT_DIR/scripts
 . ${SCRIPTS_DIR}/func.sh
 
 
-# export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/my_caddy_root.pem
+export NODE_EXTRA_CA_CERTS=${PROJECT_DIR}/services/my_caddy_root.crt
 
 ITEM_ID=5a22ab82-39b8-4169-b77c-a32287cbd28e
 
