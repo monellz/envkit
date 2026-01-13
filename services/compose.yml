@@ -101,7 +101,7 @@ services:
     container_name: vault
     restart: unless-stopped
     environment:
-      DOMAIN: "https://166.111.238.16:8443"
+      DOMAIN: "https://166.111.238.16:8443/vault"
       SIGNUPS_ALLOWED: "false"
       LOG_LEVEL: "debug"
     volumes:

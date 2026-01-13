@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# init
+SHELL_DIR=$(dirname $(readlink -f "$0"))
+PROJECT_DIR=$(dirname $SHELL_DIR)
+SCRIPTS_DIR=$PROJECT_DIR/scripts
+. ${SCRIPTS_DIR}/color.sh
+. ${SCRIPTS_DIR}/log.sh
+. ${SCRIPTS_DIR}/func.sh
+
+
+# export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/my_caddy_root.pem
+
+ITEM_ID=5a22ab82-39b8-4169-b77c-a32287cbd28e
+
+bw login || true
+
+bw get attachment git-crypt.key --itemid $ITEM_ID --output ${PROJECT_DIR}/
+info "Get git-crypt.key"
+
+bw logout
+
+ok "Use git-crypt unlock ${PROJECT_DIR}/git-crypt.key"
