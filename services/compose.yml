@@ -1,7 +1,6 @@
 name: my
 
 volumes:
-  caddy_data:
   caddy_config:
 
 networks:
@@ -59,7 +58,7 @@ services:
     volumes:
       - ./apps/caddy:/etc/caddy
       - ${DISK_ROOT:-${HOME}/disk}/webdav:/srv/webdav
-      - caddy_data:/data
+      - ${DISK_ROOT:-${HOME}/disk}/caddy/data:/data
       - caddy_config:/config
 
   qbit:
