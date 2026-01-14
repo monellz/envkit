@@ -23,6 +23,8 @@ link ${BASE_DIR}/.gitconfig ~/.gitconfig
 
 link ${BASE_DIR}/ssh/config ~/.ssh/config
 
+link ${BASE_DIR}/yazi/yazi.toml ~/.config/yazi/yazi.toml
+
 link ${BASE_DIR}/ghostty/config ~/.config/ghostty/config
 
 link ${BASE_DIR}/hypr/hyprland.conf ~/.config/hypr/hyprland.conf
