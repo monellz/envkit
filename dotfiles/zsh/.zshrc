@@ -26,6 +26,18 @@ source <(fzf --zsh)
 eval "$(zoxide init zsh)"
 eval "$(starship init zsh)"
 
+
+# ssh-agent
+if ! pgrep -u "$USER" ssh-agent > /dev/null; then
+    ssh-agent -t 1h > "$XDG_RUNTIME_DIR/ssh-agent.env"
+fi
+if [[ -z "$SSH_AUTH_SOCK" || ! -S "$SSH_AUTH_SOCK" ]]; then
+    source "$XDG_RUNTIME_DIR/ssh-agent.env" >/dev/null
+fi
+if ! ssh-add -l >/dev/null 2>&1; then
+    ssh-add ~/.ssh/id_rsa 2>/dev/null
+fi
+
 # yazi
 function y() {
     local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
