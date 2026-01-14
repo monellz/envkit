@@ -273,6 +273,10 @@ def generate_singbox_config(nodes):
             "rule_set": "geosite-geolocation-!cn",
             "outbound": "proxy",
         },
+        {
+            "action": "route", # default outbound
+            "outbound": "direct",
+        }
       ],
       "rule_set": [
         {
@@ -391,8 +395,6 @@ if __name__ == "__main__":
   output_dir = os.path.join(project_dir, "services", "apps", "sing-box")
   print(f"{project_dir=}")
   print(f"{output_dir=}")
-
-  os.makedirs(config_dir, exist_ok=True)
 
   if args.link is not None:
     with open(os.path.join(output_dir, "link.txt"), 'w') as f:
