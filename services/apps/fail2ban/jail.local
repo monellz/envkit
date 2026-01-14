@@ -1,0 +1,13 @@
+[DEFAULT]
+#banaction = iptables-multiport
+#action = %(action_)s
+backend = systemd
+
+[sshd]
+enabled = true
+backend = systemd
+mode = aggressive
+port = ssh
+maxretry = 5
+findtime = 600
+bantime = 3600

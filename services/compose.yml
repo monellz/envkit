@@ -55,6 +55,8 @@ services:
       network: host
     container_name: caddy
     network_mode: host
+    environment:
+      - TZ=Asia/Shanghai
     volumes:
       - ./apps/caddy:/etc/caddy
       - ${DISK_ROOT:-${HOME}/disk}/webdav:/srv/webdav
@@ -67,6 +69,7 @@ services:
     environment:
       - QBT_LEGAL_NOTICE=confirm
       - QBT_WEBUI_PORT=8080
+      - TZ=Asia/Shanghai
     ports:
       # for bittorrent traffic
       # - 6881:6881/tcp
@@ -103,7 +106,9 @@ services:
     environment:
       DOMAIN: "https://166.111.238.16:8443/vault"
       SIGNUPS_ALLOWED: "false"
-      LOG_LEVEL: "debug"
+      TZ: "Asia/Shanghai"
+      LOG_FILE: "/data/vault.log"
+      LOG_LEVEL: "info"
     env_file:
       - ./secret-vars.env
     volumes:

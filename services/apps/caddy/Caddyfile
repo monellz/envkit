@@ -4,6 +4,16 @@
 
 https://166.111.238.16:8443 {
     tls internal
+    log {
+        output file /data/access.log {
+            roll_size 50MiB
+            roll_keep 1000
+            roll_local_time
+        }
+        format transform "{common_log}" {
+            time_local
+        }
+    }
 
     redir /qbit /qbit/
     handle_path /qbit/* {

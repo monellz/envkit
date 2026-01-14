@@ -1,0 +1,10 @@
+[caddy-webdav]
+enabled  = true
+backend  = auto
+filter   = caddy-webdav
+logpath  = /home/zrx/disk/caddy/data/access.log
+chain    = INPUT
+port     = http,https
+maxretry = 10
+findtime = 10m
+bantime  = 6h
