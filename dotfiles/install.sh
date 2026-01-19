@@ -35,3 +35,8 @@ link ${BASE_DIR}/waybar/style.css ~/.config/waybar/style.css
 # https://gist.github.com/yagehu/7bec7492afd5ba846f99abb00c850d01
 link ${BASE_DIR}/rime/default.custom.yaml ~/.local/share/fcitx5/rime/default.custom.yaml
 
+link ${BASE_DIR}/rofi/config.rasi ~/.config/rofi/config.rasi
+
+for f in ${BASE_DIR}/applications/*; do
+    link $f ~/.local/share/applications/$(basename $f)
+done
