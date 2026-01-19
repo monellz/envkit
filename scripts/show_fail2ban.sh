@@ -15,3 +15,8 @@ grep -E "Found|Ban|Unban" /var/log/fail2ban.log
 
 info "qbit"
 grep -E "login failure" ~/disk/qbit/config/qBittorrent/data/logs/qbittorrent.log
+
+
+# sudo fail2ban-client status sshd
+info "current banned ip:"
+sudo fail2ban-client banned
