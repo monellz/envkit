@@ -116,3 +116,21 @@ services:
     ports:
       - 127.0.0.1:8082:80
     networks: [proxy]
+
+  gitea:
+    image: gitea/gitea:latest-rootless
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - TZ=Asia/Shanghai
+    ports:
+      - 127.0.0.1:8083:3000
+      - 127.0.0.1:10022:2222
+    networks: [proxy]
+    volumes:
+      - ./apps/gitea:/etc/gitea
+      - ${DISK_ROOT:-${HOME}/disk}/gitea:/var/lib/gitea
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro

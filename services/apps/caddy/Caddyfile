@@ -14,7 +14,6 @@ https://166.111.238.16:8443 {
             time_local
         }
     }
-
     redir /qbit /qbit/
     handle_path /qbit/* {
         reverse_proxy 127.0.0.1:8080 {
@@ -46,6 +45,16 @@ https://166.111.238.16:8443 {
             header_up Host {host}
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    redir /gitea /gitea/
+    handle_path /gitea/* {
+        reverse_proxy 127.0.0.1:8083 {
+            header_up Host {upstream_hostport}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Host {hostport}
             header_up X-Forwarded-Proto {scheme}
         }
     }
