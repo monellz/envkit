@@ -13,6 +13,9 @@ setopt autocd
 
 # vim mode
 bindkey -v
+# 让vim在插入/命令模式下都能使用backspace
+bindkey -M viins '^?' backward-delete-char
+bindkey -M vicmd '^?' backward-delete-char 
 
 autoload -Uz compinit; compinit
 
