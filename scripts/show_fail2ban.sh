@@ -20,3 +20,8 @@ grep -E "login failure" ~/disk/qbit/config/qBittorrent/data/logs/qbittorrent.log
 # sudo fail2ban-client status sshd
 info "current banned ip:"
 sudo fail2ban-client banned
+
+for jail in $(sudo fail2ban-client status | grep "Jail list" | sed "s/.*://;s/,//g"); do
+    echo "=== $jail ==="
+    sudo fail2ban-client get $jail banip --with-time
+done
