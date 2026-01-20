@@ -127,6 +127,8 @@ services:
       - TZ=Asia/Shanghai
     ports:
       - 127.0.0.1:8083:3000
+      # FIXME: we cannot connect it by external network, so we use ssh tunel to bypass it
+      # see dotfiles/ssh/config for pi-gitea (set git remote like 'git remote set-url origin git@pi-gitea:user/repo.git')
       - 127.0.0.1:10022:2222
     networks: [proxy]
     volumes:
