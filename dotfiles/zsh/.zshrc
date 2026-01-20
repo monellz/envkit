@@ -51,6 +51,17 @@ function y() {
 }
 
 # proxy
+proxy() {
+    if [[ $# -eq 0 ]]; then
+        echo "Warning: No command provided. Setting proxy globally in current shell." >&2
+    fi
+    https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 "$@"
+}
+
+unproxy() {
+    unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
+    echo "Proxy variables unset."
+}
 # hugo/go
 export GOPROXY=https://goproxy.cn/,direct
 export HUGO_MODULE_PROXY=https://goproxy.cn/,direct
