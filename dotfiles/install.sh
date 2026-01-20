@@ -23,11 +23,17 @@ link ${BASE_DIR}/.gitconfig ~/.gitconfig
 
 link ${BASE_DIR}/ssh/config ~/.ssh/config
 
+link ${BASE_DIR}/user-dirs.dirs ~/.config/user-dirs.dirs
+
 link ${BASE_DIR}/yazi/yazi.toml ~/.config/yazi/yazi.toml
 
 link ${BASE_DIR}/ghostty/config ~/.config/ghostty/config
 
 link ${BASE_DIR}/hypr/hyprland.conf ~/.config/hypr/hyprland.conf
+
+link ${BASE_DIR}/dms/settings.json ~/.config/DankMaterialShell/settings.json
+
+link ${BASE_DIR}/niri/config.kdl ~/.config/niri/config.kdl
 
 link ${BASE_DIR}/waybar/config.jsonc ~/.config/waybar/config.jsonc
 link ${BASE_DIR}/waybar/style.css ~/.config/waybar/style.css
