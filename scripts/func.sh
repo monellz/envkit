@@ -36,8 +36,13 @@ copy() {
     fi
 
     if [ -e "$dst" ]; then
+        if cmp -s $src $dst; then
+            ok "$src -> $dst: Already up-to-date, copy skipped"
+            return 0
+        fi        
         backup $dst
     fi
+
     maysudo cp -f "$src" "$dst"
     ok "$src -> $dst: Copyed"
 }
