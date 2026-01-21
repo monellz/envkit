@@ -29,7 +29,7 @@ https://166.111.238.16:8443 {
         root * /srv/webdav
         basic_auth {
             # docker run caddy caddy hash-password --plaintext <plain_pswd>
-            floccus $2a$14$MeKehX9GlCdj0vo1AWtAJ.rqUdzku2gVVOunXXTJKe.5TTpNUUzt2
+            zrx $2a$14$MeKehX9GlCdj0vo1AWtAJ.rqUdzku2gVVOunXXTJKe.5TTpNUUzt2
         }
         webdav
     }
