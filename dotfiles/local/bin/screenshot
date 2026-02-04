@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -e
+
+datetime=$(date '+%Y%m%d_%H%M%S')
+
+tmp_file="/tmp/screenshot_${datetime}.png"
+output_dir=$HOME/pictures/screenshot
+output_file=$output_dir/screenshot_${datetime}.png
+mkdir -p $output_dir
+
+grim -g "$(slurp)" "$tmp_file"
+
+satty \
+  --filename "$tmp_file" \
+  --output-filename "$output_file" \
+  --copy-command "wl-copy"
+

@@ -43,6 +43,12 @@ link ${BASE_DIR}/rime/default.custom.yaml ~/.local/share/fcitx5/rime/default.cus
 
 link ${BASE_DIR}/rofi/config.rasi ~/.config/rofi/config.rasi
 
+link ${BASE_DIR}/satty/config.toml ~/.config/satty/config.toml
+
+for f in ${BASE_DIR}/local/bin/*; do
+    link $f ~/.local/bin/$(basename $f)
+done
+
 for f in ${BASE_DIR}/applications/*; do
     link $f ~/.local/share/applications/$(basename $f)
 done
