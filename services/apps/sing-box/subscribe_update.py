@@ -79,15 +79,14 @@ def generate_singbox_config(nodes):
       'clash_api': {
         'external_controller': '127.0.0.1:9090',
         'external_ui': '',
-        "external_ui_download_url": f"{github_proxy_url}/https://mirror.ghproxy.com/https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
+        "external_ui_download_url": f"{github_proxy_url}/https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip",
         'external_ui_download_detour': "direct",
-        # "default_mode": "rule",
+        "default_mode": "rule",
         'secret': '',
-        # 'secret': 'singbox',
-        # 'access_control_allow_origin': [
-        #   'http://127.0.0.1',
-        # ],
-        # 'access_control_allow_private_network': True,
+        "access_control_allow_origin": [
+            "http://127.0.0.1",
+            "http://yacd.haishan.me"
+        ],
       },
       "cache_file": {
         "enabled": True, # 用于存rule-set的cache
@@ -174,6 +173,15 @@ def generate_singbox_config(nodes):
     ],
     "outbounds": [
       {
+        "tag": "proxy",
+        "type": "selector",
+        "outbounds": [
+          "direct",
+          "fastest",
+        ],
+        "default": "fastest",
+      },
+      {
         "tag": "fastest",
         "type": "urltest",
         "outbounds": [],
@@ -192,15 +200,6 @@ def generate_singbox_config(nodes):
         "tag": "fastest_in_americas",
         "type": "urltest",
         "outbounds": [],
-      },
-      {
-        "tag": "proxy",
-        "type": "selector",
-        "outbounds": [
-          "direct",
-          "fastest",
-        ],
-        "default": "fastest",
       },
       {
         "tag": "proxy_by_hmt",
@@ -239,14 +238,14 @@ def generate_singbox_config(nodes):
       "auto_detect_interface": True,
       "rules": [
         {
-          "action": "sniff", # TODO：不理解，虚拟网卡的设置会让所有流量都经过singbox（TODO：确认），这个的设置是为了让singbox能够根据流量的protocol来处理？（本身不就支持吗）而且为啥sniff action和hijack-dns是平级的
+          "action": "sniff", # 嗅探协议，写元数据，然后继续往下判断
         },
         {
           "action": "hijack-dns",
           "protocol" : "dns",
         },
         {
-            "ip_is_private": True, # TODO：不理解
+            "ip_is_private": True, # 本地链接走direct
             "outbound": "direct",
         },
         {
@@ -340,22 +339,23 @@ def generate_singbox_config(nodes):
       }
       config['outbounds'].append(outbound)
 
-      # fastest
+      # fastest & proxy
       config['outbounds'][0]['outbounds'].append(node['name'])
+      config['outbounds'][1]['outbounds'].append(node['name'])
     else:
       raise NotImplementedError(f"unknown protocol: {node['protocol']}")
 
   # fastest_in_hmt
   for node in nodes['hmt']:
-    config['outbounds'][1]['outbounds'].append(node['name'])
+    config['outbounds'][2]['outbounds'].append(node['name'])
 
   # fastest_in_asia
   for node in nodes['asia']:
-    config['outbounds'][2]['outbounds'].append(node['name'])
+    config['outbounds'][3]['outbounds'].append(node['name'])
 
   # fastest_in_americas
   for node in nodes['americas']:
-    config['outbounds'][3]['outbounds'].append(node['name'])
+    config['outbounds'][4]['outbounds'].append(node['name'])
   
   return config
 
