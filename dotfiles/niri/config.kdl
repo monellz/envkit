@@ -332,6 +332,13 @@ window-rule {
     open-floating true
 }
 
+window-rule {
+    match title="satty"
+    match app-id="com.gabm.satty"
+    open-floating true
+}
+
+
 // Window rules let you adjust behavior for individual windows.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Window-Rules
