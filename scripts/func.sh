@@ -54,8 +54,8 @@ link() {
     local dst_parent="$(dirname "$dst")"
 
     if [ ! -e $src ]; then
-	warn "$src: Skip due to source missing"
-	return 0
+	    warn "$src: Skip due to source missing"
+	    return 0
     fi
 
     if [ ! -d "$dst_parent" ]; then
@@ -65,10 +65,10 @@ link() {
 
     if [ -L "$dst" ]; then
         local target="$(readlink $dst)"
-	if [ "$target" = "$src" ]; then
-	    ok "$src -> $dst: Already correctly linked"
-	    return 0
-	fi
+	    if [ "$target" = "$src" ]; then
+	        ok "$src -> $dst: Already correctly linked"
+	        return 0
+	    fi
     fi
 
     if [ -e "$dst" ]; then
