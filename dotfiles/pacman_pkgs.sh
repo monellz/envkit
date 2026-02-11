@@ -57,3 +57,8 @@ sudo pacman -S btop bat
 
 # mail
 sudo pacman -S thunderbird
+
+
+# translator
+# ref: https://github.com/pot-app/pot-desktop
+sudo pacman -S pot-translation

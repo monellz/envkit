@@ -290,6 +290,8 @@ layer-rule {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
+spawn-at-startup "pot"
+
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
 
@@ -322,6 +324,12 @@ animations {
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
     // slowdown 3.0
+}
+
+window-rule {
+    match title="Translator"
+    match app-id="pot"
+    open-floating true
 }
 
 // Window rules let you adjust behavior for individual windows.
@@ -397,6 +405,9 @@ binds {
     // Mod-Shift-/, which is usually the same as Mod-?,
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+T hotkey-overlay-title="Open a Terminal: ghostty" { spawn "ghostty"; }
+    Mod+Z hotkey-overlay-title="Translator: pot" {
+        spawn "curl" "127.0.0.1:60828/selection_translate"
+    }
     Mod+Space hotkey-overlay-title="Run menu: rofi" {
         spawn "rofi" "-show" "combi";
         // spawn "rofi" "-show" "combi" "-modi" "window,drun,run";
