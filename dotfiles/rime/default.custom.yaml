@@ -1,12 +1,6 @@
 patch:
   schema_list:
+    - schema: double_pinyin_flypy
     - schema: luna_pinyin_simp
-    - schema: luna_pinyin
-    - schema: luna_pinyin_fluency
-    - schema: bopomofo
-    - schema: bopomofo_tw
-    - schema: cangjie5
-    - schema: stroke
-    - schema: terra_pinyin
   menu:
     page_size: 10

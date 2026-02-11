@@ -33,13 +33,19 @@ link ${BASE_DIR}/hypr/hyprland.conf ~/.config/hypr/hyprland.conf
 
 link ${BASE_DIR}/dms/settings.json ~/.config/DankMaterialShell/settings.json
 
+link ${BASE_DIR}/dms/plugins ~/.config/DankMaterialShell/plugins
+
 link ${BASE_DIR}/niri/config.kdl ~/.config/niri/config.kdl
 
 link ${BASE_DIR}/waybar/config.jsonc ~/.config/waybar/config.jsonc
 link ${BASE_DIR}/waybar/style.css ~/.config/waybar/style.css
 
+link ${BASE_DIR}/fcitx5 ~/.config/fcitx5
+
 # https://gist.github.com/yagehu/7bec7492afd5ba846f99abb00c850d01
 link ${BASE_DIR}/rime/default.custom.yaml ~/.local/share/fcitx5/rime/default.custom.yaml
+link ${BASE_DIR}/rime/double_pinyin_flypy.custom.yaml ~/.local/share/fcitx5/rime/double_pinyin_flypy.custom.yaml
+link ${BASE_DIR}/rime/luna_pinyin_simp.custom.yaml ~/.local/share/fcitx5/rime/luna_pinyin_simp.custom.yaml
 
 link ${BASE_DIR}/rofi/config.rasi ~/.config/rofi/config.rasi
 
