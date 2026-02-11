@@ -10,14 +10,17 @@ maysudo() {
 
 backup() {
     local fn="$1"
-    if [ ! -f "$fn" ]; then
-        error "$fn does not exist or is not a regular file"
+    if [ ! -e "$fn" ] && [ ! -L "$fn" ]; then
+        error "$fn does not exist"
         return 1
     fi
-    local datetime=$(date +%Y%m%d-%H%M%S)
-    local dst_fn="$fn.bak.$datetime"
+
+    local datetime
+    datetime=$(date +%Y%m%d-%H%M%S)
+    local dst_fn="${fn}.bak.${datetime}"
+
     info "Backing up: $fn -> $dst_fn"
-    maysudo mv "$fn" "$dst_fn"
+    maysudo mv -- "$fn" "$dst_fn"
 }
 
 copy() {
