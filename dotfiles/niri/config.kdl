@@ -424,6 +424,9 @@ binds {
     Mod+A hotkey-overlay-title="Run AI Assistant" {
         spawn "dms" "ipc" "call" "plugins" "toggle" "aiAssistant";
     }
+    Mod+C hotkey-overlay-title="Calculator: rofi-calc" {
+        spawn "rofi" "-show" "calc" "-no-show-match" "-no-sort";
+    }
     //Mod+Space+C hotkey-overlay-title="Run menu with computer: rofi" {
     //    spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort";
     //    // spawn "dms" "ipc" "call" "spotlight" "toggle";
