@@ -421,6 +421,9 @@ binds {
         // spawn "rofi" "-show" "combi" "-modes" "combi" "-combi-modes" "calc";
         // spawn "dms" "ipc" "call" "spotlight" "toggle";
     }
+    Mod+A hotkey-overlay-title="Run AI Assistant" {
+        spawn "dms" "ipc" "call" "plugins" "toggle" "aiAssistant";
+    }
     //Mod+Space+C hotkey-overlay-title="Run menu with computer: rofi" {
     //    spawn "rofi" "-show" "calc" "-modi" "calc" "-no-show-match" "-no-sort";
     //    // spawn "dms" "ipc" "call" "spotlight" "toggle";
