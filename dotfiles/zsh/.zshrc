@@ -68,3 +68,6 @@ export HUGO_MODULE_PROXY=https://goproxy.cn/,direct
 
 # path
 export PATH=$HOME/.local/bin:$PATH
+
+# alias for app that must use proxy
+alias claude="proxy claude"

@@ -19,6 +19,8 @@ link ${BASE_DIR}/zsh/.zshenv ~/.zshenv
 
 link ${BASE_DIR}/.vimrc ~/.vimrc
 
+link ${BASE_DIR}/.tmux.conf ~/.tmux.conf
+
 link ${BASE_DIR}/.gitconfig ~/.gitconfig
 
 link ${BASE_DIR}/ssh/config ~/.ssh/config
