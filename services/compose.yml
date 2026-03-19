@@ -36,6 +36,7 @@ services:
     build:
       context: ./apps/sing-box
       dockerfile: Dockerfile
+      network: host
     container_name: sing-box
     network_mode: host
     restart: always
