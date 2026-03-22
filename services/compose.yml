@@ -22,6 +22,7 @@ services:
     build:
       context: ./apps/auth-thu
       dockerfile: Dockerfile
+      network: host
     container_name: auth-thu
     network_mode: host
     volumes:
@@ -31,6 +32,12 @@ services:
     depends_on:
       auth-thu-deauth:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 3 https://www.baidu.com >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   sing-box:
     build:
@@ -48,6 +55,9 @@ services:
       - NET_ADMIN
     environment:
       - CONFIG_PATH=/conf/sing-box.json
+    depends_on:
+      auth-thu:
+        condition: service_healthy
 
   caddy:
     build:
