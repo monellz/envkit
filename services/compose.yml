@@ -65,6 +65,7 @@ services:
       dockerfile: Dockerfile
       network: host
     container_name: caddy
+    restart: unless-stopped
     network_mode: host
     environment:
       - TZ=Asia/Shanghai
