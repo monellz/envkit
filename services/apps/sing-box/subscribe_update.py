@@ -202,6 +202,11 @@ def generate_singbox_config(nodes):
         "outbounds": [],
       },
       {
+        "tag": "fixed_ip",
+        "type": "selector",
+        "outbounds": [],
+      },
+      {
         "tag": "proxy_by_hmt",
         "type": "selector",
         "outbounds": [
@@ -215,9 +220,10 @@ def generate_singbox_config(nodes):
         "type": "selector",
         "outbounds": [
           "direct",
+          "fixed_ip",
           "fastest_in_asia",
         ],
-        "default": "fastest_in_asia",
+        "default": "fixed_ip",
       },
       {
         "tag": "proxy_by_americas",
@@ -323,6 +329,13 @@ def generate_singbox_config(nodes):
       ]
     },
   }
+
+  def find_outbound(tag):
+    for o in config['outbounds']:
+        if o['tag'] == tag:
+            return o
+    raise KeyError(f"outbound tag not found: {tag}")
+
   for node in nodes['all']:
     if node['protocol'] == 'trojan':
       outbound = {
@@ -339,23 +352,23 @@ def generate_singbox_config(nodes):
       }
       config['outbounds'].append(outbound)
 
-      # fastest & proxy
-      config['outbounds'][0]['outbounds'].append(node['name'])
-      config['outbounds'][1]['outbounds'].append(node['name'])
+      find_outbound('proxy')['outbounds'].append(node['name'])
+      find_outbound('fastest')['outbounds'].append(node['name'])
+
+      # fixed_ip
+      if '新加坡' in node['name'] and '01' in node['name']:
+        find_outbound('fixed_ip')['outbounds'].append(node['name'])
     else:
       raise NotImplementedError(f"unknown protocol: {node['protocol']}")
 
-  # fastest_in_hmt
   for node in nodes['hmt']:
-    config['outbounds'][2]['outbounds'].append(node['name'])
+    find_outbound('fastest_in_hmt')['outbounds'].append(node['name'])
 
-  # fastest_in_asia
   for node in nodes['asia']:
-    config['outbounds'][3]['outbounds'].append(node['name'])
+    find_outbound('fastest_in_asia')['outbounds'].append(node['name'])
 
-  # fastest_in_americas
   for node in nodes['americas']:
-    config['outbounds'][4]['outbounds'].append(node['name'])
+    find_outbound('fastest_in_americas')['outbounds'].append(node['name'])
   
   return config
 
