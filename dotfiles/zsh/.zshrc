@@ -71,3 +71,4 @@ export PATH=$HOME/.local/bin:$PATH
 
 # alias for app that must use proxy
 alias claude="proxy claude"
+alias codex="proxy codex"
