@@ -116,7 +116,7 @@ services:
     container_name: vault
     restart: unless-stopped
     environment:
-      DOMAIN: "https://166.111.238.16:8443/vault"
+      DOMAIN: "https://166.111.238.16:8444/vault"
       SIGNUPS_ALLOWED: "false"
       TZ: "Asia/Shanghai"
       LOG_FILE: "/data/vault.log"
