@@ -27,5 +27,5 @@ COPY --from=builder /go/bin/sing-box /usr/local/bin/sing-box
 
 # ENTRYPOINT sing-box -c $CONFIG_PATH run
 # config文件修改时自动重启
-ENTRYPOINT echo $CONFIG_PATH | entr -n -r sing-box -c $CONFIG_PATH run
-
+STOPSIGNAL SIGINT
+ENTRYPOINT ["/bin/sh", "-c", "printf '%s\\n' \"$CONFIG_PATH\" > /tmp/entr-files; exec entr -n -r sing-box -c \"$CONFIG_PATH\" run < /tmp/entr-files"]
