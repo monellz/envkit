@@ -25,13 +25,20 @@ https://166.111.238.16:8444 {
     }
 
     redir /dav /dav/
-    handle_path /dav/* {
+    handle /dav/* {
         root * /srv/webdav
         basic_auth {
             # docker run caddy caddy hash-password --plaintext <plain_pswd>
             zrx $2a$14$UzHE/UBDwP8SmsONG82oKeHWR4UXAn4mJYavcP7WdL777HN5GK6JG
         }
-        webdav
+        route {
+            @dav_read method GET HEAD
+            uri @dav_read strip_prefix /dav
+            file_server @dav_read browse
+            webdav {
+                prefix /dav
+            }
+        }
     }
 
     redir /jellyfin /jellyfin/
