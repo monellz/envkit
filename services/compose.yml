@@ -1,5 +1,12 @@
 name: my
 
+x-logging: &default-logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "5"
+    compress: "true"
+
 volumes:
   caddy_config:
 
@@ -9,6 +16,7 @@ networks:
 
 services:
   auth-thu-deauth:
+    logging: *default-logging
     build:
       context: ./apps/auth-thu
       dockerfile: Dockerfile
@@ -19,6 +27,7 @@ services:
     command: ["deauth"]
 
   auth-thu:
+    logging: *default-logging
     build:
       context: ./apps/auth-thu
       dockerfile: Dockerfile
@@ -40,6 +49,7 @@ services:
       start_period: 20s
 
   sing-box:
+    logging: *default-logging
     build:
       context: ./apps/sing-box
       dockerfile: Dockerfile
@@ -60,6 +70,7 @@ services:
         condition: service_healthy
 
   caddy:
+    logging: *default-logging
     build:
       context: ./apps/caddy
       dockerfile: Dockerfile
@@ -76,6 +87,7 @@ services:
       - caddy_config:/config
 
   qbit:
+    logging: *default-logging
     image: qbittorrentofficial/qbittorrent-nox:latest
     container_name: qbit
     environment:
@@ -98,6 +110,7 @@ services:
       - ${DISK_ROOT:-${HOME}/disk}/qbit/downloads:/downloads
 
   jellyfin:
+    logging: *default-logging
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     environment:
@@ -112,6 +125,7 @@ services:
       - ${DISK_ROOT:-${HOME}/disk}/media/movies:/data/movies
   
   vault:
+    logging: *default-logging
     image: vaultwarden/server:latest
     container_name: vault
     restart: unless-stopped
@@ -130,6 +144,7 @@ services:
     networks: [proxy]
 
   gitea:
+    logging: *default-logging
     image: gitea/gitea:latest-rootless
     container_name: gitea
     restart: unless-stopped

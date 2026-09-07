@@ -72,7 +72,7 @@ def generate_singbox_config(nodes):
   github_proxy_url = "https://ghfast.top"
   config = {
     'log': {
-      'level': "debug",
+      'level': "info",
       'timestamp': True,
     },
     'experimental': {
