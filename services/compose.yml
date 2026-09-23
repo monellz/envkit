@@ -22,6 +22,11 @@ services:
       dockerfile: Dockerfile
     container_name: auth-thu-deauth
     network_mode: host
+    # Must match sing-box TUN exclude_uid; bypass proxy for auth, DNS and healthchecks.
+    user: "61001:61001"
+    dns:
+      - 166.111.8.28
+      - 166.111.8.29
     volumes:
       - ./apps/auth-thu:/conf
     command: ["deauth"]
@@ -34,6 +39,11 @@ services:
       network: host
     container_name: auth-thu
     network_mode: host
+    # Must match sing-box TUN exclude_uid; bypass proxy for auth, DNS and healthchecks.
+    user: "61001:61001"
+    dns:
+      - 166.111.8.28
+      - 166.111.8.29
     volumes:
       - ./apps/auth-thu:/conf
     command: ["-c", "/conf/auth-thu.json", "auth", "-k"]

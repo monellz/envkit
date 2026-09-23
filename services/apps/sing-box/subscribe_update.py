@@ -156,6 +156,8 @@ def generate_singbox_config(nodes):
         ],
         "auto_route": True, # 设置到虚拟网卡到默认路由（TODO：不理解）
         "auto_redirect": True,
+        "exclude_uid": [61001], # auth-thu: campus auth/DNS/healthchecks must bypass TUN
+        "exclude_interface": ["eth1"], # direct cable: keep DNS and local services reachable
         "strict_route": False, # 在启动auto_route时执行严格的路由规则（TODO：不理解）
         # [WARN] strict_route=True会导致ping www.baidu.com不通
         "endpoint_independent_nat": False, # 文档说不需要就不开否则性能会下降（TODO：不理解）
