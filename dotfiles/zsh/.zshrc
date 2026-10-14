@@ -72,3 +72,10 @@ export PATH=$HOME/.local/bin:$PATH
 # alias for app that must use proxy
 alias claude="proxy claude"
 alias codex="proxy codex"
+
+codex-my() {
+    https_proxy=http://127.0.0.1:7890 \
+    http_proxy=http://127.0.0.1:7890 \
+    CODEX_HOME=$HOME/.codex-my \
+    codex "$@"
+}
