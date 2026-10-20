@@ -7,10 +7,12 @@ if [[ $# -ne 1 || -z "$1" || "$1" == -* ]]; then
     exit 1
 fi
 
-# 将远程机器的 127.0.0.1:7890 转发到本机的 127.0.0.1:7890。
+REMOTE_PORT=9870
+LOCAL_PORT=7890
+
 exec ssh -N \
     -o ExitOnForwardFailure=yes \
     -o ServerAliveInterval=30 \
     -o ServerAliveCountMax=3 \
-    -R 127.0.0.1:7890:127.0.0.1:7890 \
+    -R 127.0.0.1:${REMOTE_PORT}:127.0.0.1:${LOCAL_PORT} \
     "$1"
