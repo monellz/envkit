@@ -47,6 +47,16 @@ def build(nodes, secrets):
     },
     # 给 ssh -R 转发到别人服务器用：127.0.0.1:7891，带认证，只能访问公网
     common.ssh_forward_inbound(secrets),
+    # 给其他 tailnet 设备（Mac、手机等）用的代理入口，主要用于访问飞连内网。
+    # 只监听 tailnet IP，公网（eth0）访问不到；开机时 tailscaled 可能还没起来，
+    # 依赖 sysctl net.ipv4.ip_nonlocal_bind=1（bootstrap/pi4b/etc/sysctl.d/90-nonlocal-bind.conf）
+    {
+      "type": "mixed",
+      "tag": "tailnet-gateway-in",
+      "listen": common.HUB_TAILNET_IP,
+      "listen_port": 7890,
+      "users": [{"username": secrets["TAILNET_GATEWAY_USER"], "password": secrets["TAILNET_GATEWAY_PASSWORD"]}],
+    },
   ]
 
   # 飞连内网出口：corplink 容器的 socks5 端口（映射见 compose.yml）

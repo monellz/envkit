@@ -48,6 +48,7 @@ for path in \
     systemd/network/10-eth0.network \
     systemd/network/20-eth1.network \
     systemd/networkd.conf.d/20-external-routing.conf \
+    sysctl.d/90-nonlocal-bind.conf \
     resolv.conf; do
     # Preserve a resolver symlink as a symlink backup before copying a plain file.
     if [[ "$path" == resolv.conf && -L /etc/resolv.conf ]]; then
@@ -68,6 +69,9 @@ for route in json.loads(subprocess.check_output(["ip", "-j", "-4", "route", "sho
     if route.get("dev") == "eth0" and route.get("gateway") == "192.168.31.1":
         subprocess.run(["ip", "route", "del", "default", "via", "192.168.31.1", "dev", "eth0"], check=True)
 PY
+
+# 90-nonlocal-bind.conf：让 sing-box 能在 tailscaled 启动前绑定 tailnet IP
+sysctl -p /etc/sysctl.d/90-nonlocal-bind.conf
 
 systemctl enable --now systemd-networkd.service
 networkctl reload

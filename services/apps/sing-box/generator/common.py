@@ -30,6 +30,10 @@ CORP_DOMAIN_SUFFIX = [".qcjzai.cn"]
 # tailnet 地址段：IPv4 CGNAT 段 + Tailscale 的 IPv6 段
 TAILNET_CIDR = ["100.64.0.0/10", "fd7a:115c:a1e0::/48"]
 
+# hub（gateway 角色所在机器）的 tailnet IP：gateway 上 tailnet-gateway-in 的监听地址，
+# 也是 client/mobile 的 hub 出站要连的地址。换机器后要改这里（tailscale ip -4）
+HUB_TAILNET_IP = "100.66.22.71"
+
 # fakeip 地址段（client/mobile 上给飞连域名用）
 FAKEIP_CIDR = ["198.18.0.0/15", "fc00::/18"]
 
