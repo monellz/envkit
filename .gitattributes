@@ -5,3 +5,4 @@ services/apps/auth-thu/auth-thu.json filter=git-crypt diff=git-crypt
 services/secret-vars.env filter=git-crypt diff=git-crypt
 services/apps/sing-box/secrets/** filter=git-crypt diff=git-crypt
 services/apps/webdav/htpasswd filter=git-crypt diff=git-crypt
+services/apps/gitea/app.ini filter=git-crypt diff=git-crypt
