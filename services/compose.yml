@@ -111,6 +111,25 @@ services:
         condition: service_started
 
 
+  # WebDAV（Zotero 附件、浏览器书签同步），经 tailscale serve 以 /dav 对 tailnet 提供。
+  # --baseurl /dav：rclone 自己处理 /dav 前缀，所以 serve 转发时要保留前缀（见 tailscale_serve.sh）。
+  # 账号在 apps/webdav/htpasswd（bcrypt，git-crypt 加密），新密码用 `htpasswd -nbB zrx <密码>` 生成。
+  # 数据目录里的文件历史上由 root 写入，所以容器保持以 root 运行。
+  webdav:
+    logging: *default-logging
+    image: rclone/rclone:latest
+    container_name: webdav
+    restart: unless-stopped
+    command: ["serve", "webdav", "/data", "--addr", ":8080", "--baseurl", "/dav", "--htpasswd", "/conf/htpasswd"]
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - 127.0.0.1:8084:8080
+    networks: [proxy]
+    volumes:
+      - ${DISK_ROOT:-${HOME}/disk}/webdav:/data
+      - ./apps/webdav/htpasswd:/conf/htpasswd:ro
+
   caddy:
     logging: *default-logging
     build:
