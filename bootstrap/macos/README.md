@@ -82,23 +82,24 @@ curl -sI -x http://127.0.0.1:7891 https://www.google.com | head -1        # 407
 R1（sing-box 的出站被绑到 en0，连不上 100.x）已在 2026-10-25 预演时确认，并用 `macbook-sb` 解决；
 `git.qcjzai.cn` 或 `.ts.net` 不通时，先看日志里 `endpoint/tailscale` 是否在等待登录。
 
-### 2.5 DNS：Tailscale 只负责 `.ts.net`
+### 2.5 DNS：默认用路由器，`.ts.net` 交给 Tailscale，飞连域名交给 sing-box
 
-Tailscale App 默认接管系统 DNS（100.100.100.100），而 100.x 的路由属于 Tailscale（比 TUN 的路由更具体），
-所以所有 DNS 查询都会绕过 sing-box，由 Tailscale 转发给路由器，结果会被污染（2026-10-25 实测
-www.google.com 解析成 157.240.7.20）。处理方法（hub 上 Tailscale 本来就没有接管 DNS，原理相同）：
+2026-10-25 的结论：
 
-```bash
-tailscale set --accept-dns=false     # 默认 DNS 不再交给 Tailscale；查询进入 TUN 后由 sing-box 处理
-# /etc/resolver/ts.net 由 install 安装：*.ts.net 仍交给 100.100.100.100，sing-box 没在运行时也能解析
-```
+- 系统默认 DNS **保持路由器下发的**（不手动设置），需要网页登录的 Wi-Fi 原生可用。
+  默认 DNS 可能被污染，但 TLS/HTTP/QUIC 连接会被 sing-box 嗅探出域名、按域名交给代理，实测不受影响
+- Tailscale App 默认会接管系统 DNS，关掉：`tailscale set --accept-dns=false`
+- 按域名后缀单独指定（由 install 安装）：
+  - `/etc/resolver/ts.net` → `100.100.100.100`：`.ts.net` 由 Tailscale 解析，不依赖 sing-box
+  - `/etc/resolver/qcjzai.cn` → `10.255.255.254`（sing-box 的 TUN DNS）：飞连域名得到 fakeip。
+    必须这样做：git.qcjzai.cn 的公网 IP 上 22 端口不提供 ssh，而 ssh 没有域名可嗅探
 
 验证：
 
 ```bash
-dscacheutil -q host -a name www.google.com     # 和 dig @10.255.255.254 的结果一致，不是 157.240.x
-dscacheutil -q host -a name git.qcjzai.cn      # 198.18.x（fakeip）
+dscacheutil -q host -a name git.qcjzai.cn            # 198.18.x（fakeip）
 dscacheutil -q host -a name hub.angora-wall.ts.net   # 100.66.22.71
+(sleep 5) | nc git.qcjzai.cn 22 | head -c 30         # SSH-2.0-OpenSSH...
 ```
 
 ### 3. 启用 launchd
