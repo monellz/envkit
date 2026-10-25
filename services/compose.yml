@@ -18,9 +18,9 @@ networks:
 services:
   auth-thu-deauth:
     logging: *default-logging
-    build:
-      context: ./apps/auth-thu
-      dockerfile: Dockerfile
+    # 和 auth-thu 共用同一个镜像（由 auth-thu 的 build 构建），不单独构建，也不从远程拉取
+    image: my-auth-thu
+    pull_policy: never
     container_name: auth-thu-deauth
     network_mode: host
     # Must match sing-box TUN exclude_uid; bypass proxy for auth, DNS and healthchecks.
@@ -34,6 +34,7 @@ services:
 
   auth-thu:
     logging: *default-logging
+    image: my-auth-thu
     build:
       context: ./apps/auth-thu
       dockerfile: Dockerfile

@@ -1,6 +1,3 @@
-[submodule "services/apps/auth-thu/auth-thu-src"]
-	path = services/apps/auth-thu/auth-thu-src
-	url = https://github.com/z4yx/GoAuthing.git
 [submodule "dotfiles/dms/plugins/AIAssistant"]
 	path = dotfiles/dms/plugins/AIAssistant
 	url = https://github.com/devnullvoid/dms-ai-assistant.git
