@@ -111,6 +111,7 @@ python3 -m generator --role gateway [--content content.bin] [--fetch-rule-sets] 
 ```
 
 - Claude Code on the pi goes through `127.0.0.1:7890` — **never restart sing-box any other way than `apply.sh`**, and never run `docker compose up --force-recreate sing-box` without `--no-deps` (it would recreate auth-thu, whose deauth step logs the pi off the campus network).
+- Inbounds: `local-in` 127.0.0.1:7890 (no auth), `ssh-forward-in` 127.0.0.1:7891 (auth from `secrets/credentials.env`, public internet only — for `ssh -R` to other people's servers).
 - `out/` and `live/` are gitignored (they contain node passwords). `live/apply.log` has the switch history.
 - When bumping the image, change both `compose.yml` and `IMAGE` in `generator/main.py`.
 

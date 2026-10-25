@@ -27,6 +27,32 @@ AI_CRITICAL_DOMAIN_SUFFIX = ["anthropic.com", "claude.ai", "claude.com"]
 CORP_DOMAIN = ["qcjzai.cn"]
 CORP_DOMAIN_SUFFIX = [".qcjzai.cn"]
 
+# tailnet 地址段：IPv4 CGNAT 段 + Tailscale 的 IPv6 段
+TAILNET_CIDR = ["100.64.0.0/10", "fd7a:115c:a1e0::/48"]
+
+# fakeip 地址段（client/mobile 上给飞连域名用）
+FAKEIP_CIDR = ["198.18.0.0/15", "fc00::/18"]
+
+# 自定义规则集，写成 inline，所有角色共用（gate-plan 4.5）
+INLINE_RULE_SETS = [
+  # tailnet：MagicDNS 域名和 tailnet 地址，只在 route 规则里用
+  {"tag": "tailnet", "type": "inline", "rules": [
+    {"domain_suffix": [".ts.net"], "ip_cidr": TAILNET_CIDR},
+  ]},
+  # tailnet-domain：只含域名，DNS 规则专用。
+  # 1.14 把在 DNS 规则里引用含 ip_cidr 的规则集视为已废弃的地址过滤写法，所以和上面分开
+  {"tag": "tailnet-domain", "type": "inline", "rules": [
+    {"domain_suffix": [".ts.net"]},
+  ]},
+  # tailscale-control：Tailscale 控制服务器和 DERP 中继，直连，不让 tailnet 依赖机场。
+  # 实测（2026-10-25，pi）：controlplane/login/derpN 都能直连；log.tailscale.com 直连超时，
+  # 所以只列这几个，其余 tailscale 域名（日志上报、网站）按普通规则走代理
+  {"tag": "tailscale-control", "type": "inline", "rules": [
+    {"domain": ["controlplane.tailscale.com", "login.tailscale.com"],
+     "domain_regex": [r"^derp\d+[a-z]?\.tailscale\.com$"]},
+  ]},
+]
+
 
 def rule_set_url(tag):
   """远程规则集的下载地址（经 ghfast 镜像）。"""
@@ -102,7 +128,7 @@ def base_config(secrets):
       # 所有规则都没匹配上时直连
       "final": "direct",
       "rules": [],
-      "rule_set": [
+      "rule_set": INLINE_RULE_SETS + [
         {"tag": tag, "type": "remote", "format": "binary", "url": rule_set_url(tag)}
         for tag in REMOTE_RULE_SETS
       ],
@@ -161,6 +187,42 @@ def head_route_rules():
 def ai_critical_rule():
   """AI 关键域名 -> proxy-ai。放在 clash_mode 和远程规则集之前。"""
   return {"domain_suffix": AI_CRITICAL_DOMAIN_SUFFIX, "outbound": "proxy-ai"}
+
+
+def ssh_forward_inbound(secrets):
+  """ssh-forward-in：专门给 `ssh -R` 转发到别人服务器用的入站（gate-plan 4.2）。
+
+  别人服务器上的其他用户也能连到转发端口，所以必须带认证；
+  访问范围由 ssh_forward_rules() 限制为只能访问公网。
+  """
+  return {
+    "type": "mixed",
+    "tag": "ssh-forward-in",
+    "listen": "127.0.0.1",
+    "listen_port": 7891,
+    "users": [{"username": secrets["SSH_FORWARD_USER"], "password": secrets["SSH_FORWARD_PASSWORD"]}],
+  }
+
+
+def ssh_forward_rules():
+  """ssh-forward-in 的访问限制：别人的服务器只能访问公网（gate-plan 5.3 第 3 条）。
+
+  必须放在路由规则最前面（sniff / hijack-dns 之后）。
+  """
+  return [
+    # 1. 飞连内网域名直接拒绝
+    {"inbound": "ssh-forward-in", "domain": CORP_DOMAIN, "domain_suffix": CORP_DOMAIN_SUFFIX, "action": "reject"},
+    # 2. 先把域名解析成 IP。否则对域名目标，后面的 IP 规则不会生效，
+    #    用一个解析到 127.0.0.1 的域名（如 localtest.me）就能绕过限制
+    {"inbound": "ssh-forward-in", "action": "resolve"},
+    # 3. 拒绝私有地址、本机、tailnet 和 fakeip：
+    #    挡住 127.0.0.1 上的 corplink socks(1088)、clash API(9090)、vault 等，以及局域网和 tailnet 设备。
+    #    0.0.0.0/8 和 :: 在 Linux 上连接时等同于本机，也要拒绝
+    {"inbound": "ssh-forward-in", "ip_is_private": True, "action": "reject"},
+    {"inbound": "ssh-forward-in",
+     "ip_cidr": ["0.0.0.0/8", "127.0.0.0/8", "::/128", "::1/128"] + TAILNET_CIDR + FAKEIP_CIDR,
+     "action": "reject"},
+  ]
 
 
 def common_route_rules():

@@ -45,6 +45,8 @@ def build(nodes, secrets):
       "listen": "127.0.0.1",
       "listen_port": 7890,
     },
+    # 给 ssh -R 转发到别人服务器用：127.0.0.1:7891，带认证，只能访问公网
+    common.ssh_forward_inbound(secrets),
   ]
 
   # 飞连内网出口：corplink 容器的 socks5 端口（映射见 compose.yml）
@@ -57,9 +59,29 @@ def build(nodes, secrets):
     "network": "tcp",
   })
 
-  config["route"]["rules"] = common.head_route_rules() + [
+  # tailnet 出口：必须绑定 tailscale0。
+  # 普通 direct 出站会被 auto_detect_interface 绑到 eth0，而 tailscale serve 只监听在 tailscale0 上（P2）
+  # domain_resolver：出站连接前解析域名用的是 route.default_domain_resolver（dns-cn），不走 DNS 规则，
+  # 所以要单独指定 MagicDNS，否则 .ts.net 会被发到 223.5.5.5，返回空结果（预演时实测）
+  config["outbounds"].append({
+    "tag": "tailnet-direct",
+    "type": "direct",
+    "bind_interface": "tailscale0",
+    "domain_resolver": "dns-tailnet",
+  })
+
+  # MagicDNS：.ts.net 域名交给 tailscaled 的 100.100.100.100 解析（P1）
+  config["dns"]["servers"].append(
+    {"tag": "dns-tailnet", "type": "udp", "server": "100.100.100.100", "detour": "tailnet-direct"})
+  config["dns"]["rules"].insert(0, {"rule_set": "tailnet-domain", "server": "dns-tailnet"})
+
+  config["route"]["rules"] = common.head_route_rules() + common.ssh_forward_rules() + [
     # AI 关键域名优先，保证一定走海外
     common.ai_critical_rule(),
+    # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场
+    {"rule_set": "tailscale-control", "outbound": "direct"},
+    # tailnet 域名和地址走 tailscale0（P1、P2、P5：不再被发到机场节点）
+    {"rule_set": "tailnet", "outbound": "tailnet-direct"},
     # 飞连认证域名须直连，避免再次送回飞连；无域名的隧道连接由 final direct 处理。
     {"domain": ["feilian.qcjzai.cn"], "outbound": "direct"},
     # 其余公司域名交给飞连
@@ -69,6 +91,8 @@ def build(nodes, secrets):
   # 首次启动（cache.db 为空，例如新建容器）时从本地 srs 文件加载规则集，
   # 避免 ghfast 不可用时 sing-box 启动失败；之后由 sing-box 自己按时更新到 cache.db
   for rs in config["route"]["rule_set"]:
+    if rs["type"] != "remote":
+      continue
     rs["initial_path"] = f"{INITIAL_RULE_SET_DIR}/{rs['tag']}.srs"
 
   return config
