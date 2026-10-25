@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  每小时从 hub 同步一次 sing-box 配置（scripts/sync_sing_box.sh），有变化才重启 sing-box。
+  __ENVKIT__ 在安装时替换成本机 envkit 仓库的绝对路径。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.sagernet.sing-box-sync</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__ENVKIT__/scripts/sync_sing_box.sh</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>3600</integer>
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/sing-box-sync.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/sing-box-sync.log</string>
+</dict>
+</plist>
