@@ -109,16 +109,16 @@ sudo bash bootstrap/macos/install_sing_box.sh enable
 tail -f /usr/local/var/log/sing-box.log
 ```
 
-### 4. 清理旧的代理方式
+### 4. 系统代理：保留，指向本机 sing-box
 
-```bash
-# 关闭系统代理（按实际网络服务名，networksetup -listallnetworkservices 查看）
-sudo networksetup -setwebproxystate Wi-Fi off
-sudo networksetup -setsecurewebproxystate Wi-Fi off
-```
+**保留** HTTP/HTTPS 系统代理 `127.0.0.1:7890`（以前指向 `ssh -L`，现在是本机 sing-box 的 `local-in`）。
+TUN 是「失败即放行」的：sing-box 挂掉或重启的几秒内，TUN 网卡消失，新连接会直接从国内发出。
+系统代理是「失败即断开」的：遵循系统代理的程序（浏览器、Claude/ChatGPT 桌面版等）在 sing-box 不可用时连接失败，
+不会漏到国内；而且代理请求自带域名，不受 DNS 污染影响。两者叠加：遵循系统代理的走 7890，其余由 TUN 接管。
 
-- 不再需要 `ssh -L 7890`（如果是开机自启的，一并移除）
-- `.zshrc` 的 `proxy()` 继续指向 `127.0.0.1:7890`，现在指向本机 sing-box
+- 系统已有的绕过列表（127.0.0.1、localhost、`*.local`、私有网段）够用；tailnet 没有绕过，经 7890 → `macbook-sb` 也能访问
+- 不再需要 `ssh -L 7890`（tmux `feilian` 里的 autossh 不要再启动，否则会和 sing-box 抢 7890）
+- `.zshrc` 的 `proxy()` 继续指向 `127.0.0.1:7890`，`alias claude="proxy claude"` 同样是失败即断开
 
 ### 5. 回归验证（gate-plan 阶段 4 验证项）
 
