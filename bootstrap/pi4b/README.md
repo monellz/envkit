@@ -63,8 +63,8 @@ sudo journalctl -u pi4b-network-setup --no-pager
 - sing-box 的 TUN 设置 `exclude_uid: [61001]`，认证、DNS、联网检查都不经过代理。
 - TUN 的 `exclude_interface: ["eth1"]` 保证直连电脑访问 Pi 的本地服务时
   不被透明代理重定向；eth1 不作为电脑的默认网关。
-- 这些排除项也写入 `services/apps/sing-box/subscribe_update.py`，
-  更新订阅后不会丢失。
+- 这些排除项写在 sing-box 配置生成器 `services/apps/sing-box/generator/roles/gateway.py` 中，
+  重新生成配置后不会丢失。
 - sing-box 其余 DNS 分流沿用现有配置。auth-thu 健康后启动 sing-box 的依赖保持不变。
 
 应用 Compose 修改时只重建认证服务，避免执行 deauth：

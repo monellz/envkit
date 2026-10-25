@@ -15,7 +15,6 @@ Personal Arch Linux environment management repo. Contains:
 Several files are encrypted with `git-crypt`:
 - `dotfiles/ssh/config`
 - `services/apps/auth-thu/auth-thu.json`
-- `services/apps/sing-box/sing-box.json` (legacy config, pre-refactor)
 - `services/apps/sing-box/secrets/**` (subscription URL, clash API secret, inbound credentials)
 - `services/secret-vars.env`
 

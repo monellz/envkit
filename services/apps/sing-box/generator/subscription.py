@@ -1,6 +1,6 @@
 """订阅处理：拉取机场订阅、解析 trojan 分享链接、按地区给节点分组。
 
-从原来的 subscribe_update.py 拆出来，逻辑保持一致。
+从原来的 subscribe_update.py（已在 2026-10-26 删除，见 git tag pre-gateway-refactor）拆出来，逻辑保持一致。
 """
 from base64 import b64decode
 from urllib.parse import urlsplit, parse_qs, unquote
