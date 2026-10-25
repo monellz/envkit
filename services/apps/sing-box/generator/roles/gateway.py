@@ -45,8 +45,8 @@ def build(nodes, secrets):
       "listen": "127.0.0.1",
       "listen_port": 7890,
     },
-    # 给 ssh -R 转发到别人服务器用：127.0.0.1:7891，带认证，只能访问公网
-    common.ssh_forward_inbound(secrets),
+    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网
+    common.ssh_forward_inbound(),
     # 给其他 tailnet 设备（Mac、手机等）用的代理入口，主要用于访问飞连内网。
     # 只监听 tailnet IP，公网（eth0）访问不到；开机时 tailscaled 可能还没起来，
     # 依赖 sysctl net.ipv4.ip_nonlocal_bind=1（bootstrap/pi4b/etc/sysctl.d/90-nonlocal-bind.conf）

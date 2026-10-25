@@ -201,18 +201,19 @@ def ai_critical_rule():
   return {"domain_suffix": AI_CRITICAL_DOMAIN_SUFFIX, "outbound": "proxy-ai"}
 
 
-def ssh_forward_inbound(secrets):
+def ssh_forward_inbound():
   """ssh-forward-in：专门给 `ssh -R` 转发到别人服务器用的入站（gate-plan 4.2）。
 
-  别人服务器上的其他用户也能连到转发端口，所以必须带认证；
-  访问范围由 ssh_forward_rules() 限制为只能访问公网。
+  端口和服务器上的转发端口一致，都是 9870：ssh config 里写 `RemoteForward 9870 127.0.0.1:9870`，
+  服务器上用 http://127.0.0.1:9870 作为代理（7890/7891 是 Clash 类软件的默认端口，容易冲突）。
+  暂不加认证（2026-10-25 决定）：共享服务器上的其他用户也能用它访问公网，
+  但访问范围由 ssh_forward_rules() 限制为只能访问公网，碰不到飞连、本机端口和 tailnet。
   """
   return {
     "type": "mixed",
     "tag": "ssh-forward-in",
     "listen": "127.0.0.1",
-    "listen_port": 7891,
-    "users": [{"username": secrets["SSH_FORWARD_USER"], "password": secrets["SSH_FORWARD_PASSWORD"]}],
+    "listen_port": 9870,
   }
 
 

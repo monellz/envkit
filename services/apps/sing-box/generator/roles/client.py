@@ -76,8 +76,8 @@ def build(nodes, secrets, platform):
     tun_inbound(platform),
     # 本机代理端口：给命令行程序显式指定代理（.zshrc 的 proxy()），兼容原来 ssh -L 的用法
     common.local_in(),
-    # 给 ssh -R 转发到别人服务器用：127.0.0.1:7891，带认证，只能访问公网
-    common.ssh_forward_inbound(secrets),
+    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网
+    common.ssh_forward_inbound(),
   ]
 
   # tailnet 出口：Linux 是绑定 tailscale0 的 direct，macOS 是内置 tailscale endpoint
