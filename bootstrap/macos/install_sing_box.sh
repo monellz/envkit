@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Mac 上安装 / 启用 / 停用 sing-box（gate-plan 阶段 4）。需要 root。
 #
-#   sudo -E bash install_sing_box.sh install   # 下载官方二进制、拉取配置、安装 launchd plist（不启动）
+#   sudo -E bash install_sing_box.sh install [tailscale 状态目录]
+#                                              # 下载官方二进制、拉取配置、安装 launchd plist（不启动）
+#                                              # 可选参数：已登录的 tailscale endpoint 状态目录（例如预演时的
+#                                              # ~/.cache/sb-preflight/tailscale），复制过去后 macbook-sb 不用重新登录
 #   sudo bash install_sing_box.sh enable       # 加载 launchd：启动 sing-box 和每小时同步
 #   sudo bash install_sing_box.sh disable      # 卸载 launchd：停止 sing-box（回滚用）
 #
@@ -51,8 +54,27 @@ install_binary() {
 }
 
 cmd_install() {
+    local ts_state=${1:-}
+    # Homebrew 装的旧版 sing-box 是指向 Cellar 的软链接，直接覆盖会写进 Homebrew 的目录
+    if [[ -L /usr/local/bin/sing-box ]]; then
+        error "/usr/local/bin/sing-box 是软链接（$(readlink /usr/local/bin/sing-box)），请先用普通用户执行 brew uninstall sing-box"
+        exit 1
+    fi
     mkdir -p /usr/local/bin /usr/local/etc/sing-box /usr/local/var/lib/sing-box /usr/local/var/log
+    chmod 700 /usr/local/var/lib/sing-box  # cache.db 和 tailscale 节点密钥
     install_binary
+
+    # macOS 上 sing-box 内置的 tailscale endpoint（macbook-sb）的登录状态，
+    # 位置对应配置里的 state_directory: "tailscale"（相对工作目录 -D）
+    if [[ -n "$ts_state" ]]; then
+        if [[ -e /usr/local/var/lib/sing-box/tailscale ]]; then
+            warn "已存在 /usr/local/var/lib/sing-box/tailscale，不覆盖"
+        else
+            cp -R "$ts_state" /usr/local/var/lib/sing-box/tailscale
+            chown -R root:wheel /usr/local/var/lib/sing-box/tailscale
+            ok "已迁移 tailscale 状态：$ts_state"
+        fi
+    fi
 
     # 首次拉取配置：只下载并检查，不重启（此时 sing-box 还没有在 launchd 中运行）
     info "从 hub 拉取配置"
@@ -80,7 +102,7 @@ cmd_disable() {
 }
 
 case "${1:-}" in
-    install) cmd_install ;;
+    install) cmd_install "${2:-}" ;;
     enable) cmd_enable ;;
     disable) cmd_disable ;;
     *) echo "用法：sudo [-E] bash $0 install|enable|disable" >&2; exit 1 ;;

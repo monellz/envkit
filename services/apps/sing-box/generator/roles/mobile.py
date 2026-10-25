@@ -10,7 +10,8 @@ TUN_ADDRESS = ["10.255.255.253/30", "fdfe:dcba:9876::1/126"]
 
 
 def build(nodes, secrets):
-  config = common.base_config(secrets)
+  # 规则集经代理下载：客户端所在网络不固定，直连 ghfast 不一定通
+  config = common.base_config(secrets, rule_set_via="proxy")
   common.add_nodes(config, nodes)
 
   config["inbounds"] = [

@@ -31,23 +31,45 @@ def tun_inbound(platform):
   return tun
 
 
-def tailnet_outbound(platform):
-  """tailnet 出口。
+def linux_tailnet(config):
+  """Linux：sing-box 自己访问 tailnet 时绑定 tailscale0（同 gateway，P2）。"""
+  config["outbounds"].append({
+    "tag": "tailnet-direct",
+    "type": "direct",
+    "bind_interface": "tailscale0",
+    # 出站解析域名默认用 dns-cn，.ts.net 必须交给 MagicDNS
+    "domain_resolver": "dns-tailnet",
+  })
+  config["dns"]["servers"].append(
+    {"tag": "dns-tailnet", "type": "udp", "server": "100.100.100.100", "detour": "tailnet-direct"})
+  return "tailnet-direct"
 
-  Linux：绑定 tailscale0（同 gateway，P2）。
-  macOS：Tailscale 的网卡是 utunN，编号不固定，没法写死 bind_interface；
-    先用普通 direct，阶段 4 实测（R1）。如果被 auto_detect_interface 绑到 en0 而连不上，
-    改为 tailscale endpoint 作为 detour。
+
+def macos_tailnet(config):
+  """macOS：sing-box 自己访问 tailnet 时，经内置的 tailscale endpoint（R1 的备选方案）。
+
+  实测（2026-10-25）：auto_detect_interface 会把 direct 出站绑到 en0，
+  连 100.66.22.71 报 no route to host，访问 100.100.100.100 超时；
+  而 Tailscale App 的网卡是 utunN，编号不固定，没法写死 bind_interface。
+  所以 sing-box 自己作为一个 tailnet 节点（hostname macbook-sb）。
+  注意：只有 sing-box 自己发起的 tailnet 连接（hub 出站、.ts.net DNS、经 7890 访问 .ts.net）走它；
+  普通 App 直连 tailnet 地址时，TUN 不接管 100.64/10，仍由 Tailscale App 处理。
+  首次启动时 sing-box 日志里会打印登录链接；状态保存在工作目录（-D）下的 tailscale/。
   """
-  outbound = {"tag": "tailnet-direct", "type": "direct", "domain_resolver": "dns-tailnet"}
-  if platform == "linux":
-    outbound["bind_interface"] = "tailscale0"
-  return outbound
+  config["endpoints"] = [{
+    "type": "tailscale",
+    "tag": "tailscale",
+    "hostname": "macbook-sb",
+    "state_directory": "tailscale",
+  }]
+  config["dns"]["servers"].append({"tag": "dns-tailnet", "type": "tailscale", "endpoint": "tailscale"})
+  return "tailscale"
 
 
 def build(nodes, secrets, platform):
   assert platform in ("macos", "linux"), platform
-  config = common.base_config(secrets)
+  # 规则集经代理下载：客户端所在网络不固定，直连 ghfast 不一定通
+  config = common.base_config(secrets, rule_set_via="proxy")
   common.add_nodes(config, nodes)
 
   config["inbounds"] = [
@@ -58,13 +80,12 @@ def build(nodes, secrets, platform):
     common.ssh_forward_inbound(secrets),
   ]
 
-  config["outbounds"].append(tailnet_outbound(platform))
-  # 飞连流量经 tailnet 交给 hub；Linux 上强制走 tailscale0
-  config["outbounds"].append(common.hub_outbound(secrets, detour="tailnet-direct" if platform == "linux" else None))
+  # tailnet 出口：Linux 是绑定 tailscale0 的 direct，macOS 是内置 tailscale endpoint
+  tailnet = linux_tailnet(config) if platform == "linux" else macos_tailnet(config)
+  # 飞连流量经 tailnet 交给 hub
+  config["outbounds"].append(common.hub_outbound(secrets, detour=tailnet))
 
   # DNS：.ts.net 交给 MagicDNS；飞连域名返回 fakeip
-  config["dns"]["servers"].append(
-    {"tag": "dns-tailnet", "type": "udp", "server": "100.100.100.100", "detour": "tailnet-direct"})
   config["dns"]["rules"].insert(0, {"rule_set": "tailnet-domain", "server": "dns-tailnet"})
   common.corp_fakeip_dns(config)
 
@@ -74,7 +95,7 @@ def build(nodes, secrets, platform):
     # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场（R2）
     {"rule_set": "tailscale-control", "outbound": "direct"},
     # tailnet 域名和地址走 Tailscale
-    {"rule_set": "tailnet", "outbound": "tailnet-direct"},
+    {"rule_set": "tailnet", "outbound": tailnet},
     # 飞连内网域名交给 hub（fakeip 会在这里被还原成域名）
     {"domain": common.CORP_DOMAIN, "domain_suffix": common.CORP_DOMAIN_SUFFIX, "outbound": "hub"},
   ] + common.common_route_rules()

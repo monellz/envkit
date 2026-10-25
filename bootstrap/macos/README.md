@@ -3,6 +3,18 @@
 Mac 本机运行官方 sing-box（TUN 模式）：海外流量直连机场，飞连流量经 tailnet 交给 hub，
 tailnet 流量交给 Tailscale App。配置由 hub 生成并发布，本机只负责拉取（`scripts/sync_sing_box.sh`）。
 
+### 关于 tailnet 里的 `macbook-sb` 节点
+
+sing-box 把飞连流量转给 hub（100.66.22.71）时需要走 tailnet，但它自己发出的连接都会被绑到 en0，
+而 Tailscale App 的网卡是 utunN（编号由系统按创建顺序分配，重启、重连后可能变化），没法写死在配置里。
+所以配置里内置了一个 tailscale endpoint：sing-box 进程内自带 WireGuard 和用户态网络栈，
+作为 tailnet 节点 `macbook-sb`，自己建立到 hub 的加密隧道，不依赖任何系统网卡。
+
+- 只有 sing-box 自己发起的 tailnet 连接走它（hub 出站、`.ts.net` DNS、经 7890 访问 `.ts.net`）
+- 普通 App 直接访问 tailnet 仍由 Tailscale App（`macbook-pro`）处理，TUN 不接管 100.64/10
+- 状态（节点密钥）在 `/usr/local/var/lib/sing-box/tailscale/`；在 Tailscale 后台给 `macbook-sb`
+  设置 **Disable key expiry**，否则 180 天后需要重新登录
+
 | 部件 | 位置 |
 | --- | --- |
 | 二进制 | `/usr/local/bin/sing-box`（v1.14.4，和 hub 同版本） |
@@ -24,6 +36,7 @@ tailnet 流量交给 Tailscale App。配置由 hub 生成并发布，本机只�
   lsof -nP -iTCP:7890 -sTCP:LISTEN
   ```
 
+- 卸载 Homebrew 装的旧版 sing-box（1.10.1）：`brew uninstall sing-box`
 - 卸载 SFM 1.10.1：退出 App，删除 `/Applications/SFM.app`；
   `systemextensionsctl list` 里如果还有 `io.nekohasekai.sfavt` 相关的扩展，在「系统设置 → 通用 → 登录项与扩展」中移除
 
@@ -31,8 +44,10 @@ tailnet 流量交给 Tailscale App。配置由 hub 生成并发布，本机只�
 
 ```bash
 proxy                                    # 下载 GitHub release 需要代理（此时仍是 ssh -L）
-sudo -E bash bootstrap/macos/install_sing_box.sh install
+sudo -E bash bootstrap/macos/install_sing_box.sh install [已登录的 tailscale 状态目录]
 ```
+
+第一次安装时如果不带状态目录，前台试运行时日志会打印 `macbook-sb` 的登录链接，用浏览器批准即可。
 
 ### 2. 前台试运行
 
@@ -64,8 +79,8 @@ curl -sI -x http://127.0.0.1:7891 https://www.google.com | head -1        # 407
 
 前台日志里能直接看到每个连接走了哪个出站。任何一项不通，Ctrl-C 退出即可恢复原状（再重新起 `ssh -L`）。
 
-**R1 的已知风险**：`git.qcjzai.cn` 或 `.ts.net` 不通，并且日志显示 `hub` / `tailnet-direct` 出站连 100.x 超时，
-说明 sing-box 的出站被绑到了 en0。这时需要改生成器（client-macos 加 tailscale endpoint 作为 detour），回到 hub 上处理。
+R1（sing-box 的出站被绑到 en0，连不上 100.x）已在 2026-10-25 预演时确认，并用 `macbook-sb` 解决；
+`git.qcjzai.cn` 或 `.ts.net` 不通时，先看日志里 `endpoint/tailscale` 是否在等待登录。
 
 ### 3. 启用 launchd
 

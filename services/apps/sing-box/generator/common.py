@@ -58,16 +58,23 @@ INLINE_RULE_SETS = [
 ]
 
 
-def rule_set_url(tag):
-  """远程规则集的下载地址（经 ghfast 镜像）。"""
-  return f"{GITHUB_PROXY}/https://raw.githubusercontent.com/SagerNet/{REMOTE_RULE_SETS[tag]}"
+def rule_set_url(tag, mirror=True):
+  """远程规则集的下载地址。mirror=True 时经 ghfast 镜像（直连下载用），否则直接用 GitHub 地址（经代理下载用）。"""
+  url = f"https://raw.githubusercontent.com/SagerNet/{REMOTE_RULE_SETS[tag]}"
+  return f"{GITHUB_PROXY}/{url}" if mirror else url
 
 
-def base_config(secrets):
+def base_config(secrets, rule_set_via="direct"):
   """返回公共骨架：日志、clash API、DNS、出站分组、规则集。
 
   入站、角色特有的出站和路由规则由各角色在 build() 里补充。
+
+  rule_set_via：远程规则集怎么下载。
+    "direct"：直连 ghfast 镜像。hub 用这个，并配合 initial_path 本地文件兜底。
+    "proxy"：经机场节点直接从 GitHub 下载。client/mobile 用这个：它们所在的网络不固定，
+      实测（2026-10-25）Mac 在家用网络下直连 ghfast.top 超时，而首次启动时规则集下载失败会导致 sing-box 起不来。
   """
+  assert rule_set_via in ("direct", "proxy"), rule_set_via
   return {
     "log": {"level": "info", "timestamp": True},
     "experimental": {
@@ -100,9 +107,10 @@ def base_config(secrets):
       "strategy": "prefer_ipv4",  # 同时有 v4/v6 地址时优先用 v4
       "final": "dns-cn",  # 没匹配到任何规则时用国内 DNS
     },
-    # 下载远程规则集用的 HTTP 客户端；不设 detour 就是直连（替代旧的 download_detour: direct）
+    # 下载远程规则集用的 HTTP 客户端（替代旧的 download_detour）：
+    # http-direct 不设 detour 即直连；http-proxy 经 proxy 分组（机场节点）
     "http_clients": [
-      {"tag": "http-direct"},
+      {"tag": "http-direct"} if rule_set_via == "direct" else {"tag": "http-proxy", "detour": "proxy"},
     ],
     # 出站分组（节点由 add_nodes() 填充）：
     # - proxy：通用海外出口，默认 fastest（全部节点测速最快）
@@ -128,12 +136,12 @@ def base_config(secrets):
       "auto_detect_interface": True,
       # 出站连接需要解析域名时（例如机场节点的域名）用国内 DNS；替代旧的 `outbound: any` DNS 规则
       "default_domain_resolver": "dns-cn",
-      "default_http_client": "http-direct",
+      "default_http_client": f"http-{rule_set_via}",
       # 所有规则都没匹配上时直连
       "final": "direct",
       "rules": [],
       "rule_set": INLINE_RULE_SETS + [
-        {"tag": tag, "type": "remote", "format": "binary", "url": rule_set_url(tag)}
+        {"tag": tag, "type": "remote", "format": "binary", "url": rule_set_url(tag, mirror=rule_set_via == "direct")}
         for tag in REMOTE_RULE_SETS
       ],
     },
