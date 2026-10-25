@@ -84,20 +84,22 @@ All services are in `services/`. Run from that directory:
 ```bash
 cd services
 
-# Start all services
-docker compose up -d
-
-# Start a specific service
-docker compose up -d caddy
+# Start / recreate a specific service — always use --no-deps.
+# A plain `docker compose up -d` (or anything that pulls in auth-thu's dependencies)
+# runs auth-thu-deauth first, which logs the pi off the campus network.
+docker compose up -d --no-deps gitea
 
 # Rebuild after Dockerfile changes
-docker compose build caddy && docker compose up -d caddy
+docker compose build corplink && docker compose up -d --no-deps corplink
 
 # View logs
 docker compose logs -f auth-thu
 ```
 
-Services: `auth-thu` (Tsinghua network auth), `sing-box` (proxy), `corplink` (Feilian corp VPN, socks on 127.0.0.1:1088), `caddy` (reverse proxy), `qbittorrent`, `jellyfin`, `vaultwarden`, `gitea`.
+Services: `auth-thu` (Tsinghua network auth), `sing-box` (proxy), `corplink` (Feilian corp VPN, socks on 127.0.0.1:1088), `vaultwarden`, `gitea`, `webdav` (rclone).
+
+Web services are tailnet-only via `tailscale serve` — no public HTTP ports. `services/tailscale_serve.sh` (run with sudo) is the source of truth:
+`https://hub.angora-wall.ts.net/` agents-hub, `/sing-box/` client configs, `/gitea/`, `/vault/`, `/dav/` (WebDAV), and gitea ssh on tcp 10022 (`git@gitea:user/repo.git` via the ssh alias). Backends listen on 127.0.0.1 only. fail2ban only guards sshd.
 
 ### sing-box
 

@@ -12,15 +12,8 @@ SCRIPTS_DIR=$PROJECT_DIR/scripts
 sudo apt update
 sudo apt install -y fail2ban python3-systemd
 
+# 只保护 sshd：Web 服务都经 tailscale serve 只对 tailnet 开放，没有公网入口
 USE_SUDO=1 link ${SHELL_DIR}/jail.local /etc/fail2ban/jail.local
-
-for f in ${SHELL_DIR}/filter.d/*; do
-    USE_SUDO=1 link $f /etc/fail2ban/filter.d/$(basename $f)
-done
-
-for f in ${SHELL_DIR}/jail.d/*; do
-    USE_SUDO=1 link $f /etc/fail2ban/jail.d/$(basename $f)
-done
 
 # sudo systemctl restart fail2ban
 sudo fail2ban-client reload

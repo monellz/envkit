@@ -10,8 +10,9 @@
 #   1. 用目标镜像执行 sing-box check，失败直接退出（什么都不改）
 #   2. 把新配置和规则集（out/srs）放进 live/，重建 sing-box 容器
 #   3. 自检：代理能连 Anthropic、出口不在国内、不走代理能访问 baidu
-#   4. 自检通过：把当前 compose.yml 和配置记为 live/good/（下次回滚的目标）
-#      自检失败：恢复 live/good/ 中的 compose.yml 和配置，重建容器后再自检一次
+#   4. 自检通过：把当前镜像和配置记为 live/good/（下次回滚的目标）
+#      自检失败：恢复 live/good/ 中的镜像和配置，重建容器后再自检一次。
+#      只恢复 compose.yml 里 sing-box 的 image 这一行，不覆盖整个文件，以免把其他服务的改动一起回滚
 #
 # 为什么要这么麻烦：pi 上的 Claude Code 经 127.0.0.1:7890 访问 API，sing-box 起不来时会话无法自救。
 set -uo pipefail
@@ -20,7 +21,7 @@ APP_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SERVICES_DIR=$(cd "$APP_DIR/../.." && pwd)
 COMPOSE_FILE=$SERVICES_DIR/compose.yml
 LIVE=$APP_DIR/live          # 挂载进容器的 /conf（只读）
-GOOD=$LIVE/good             # 上一次自检通过的 compose.yml 和配置
+GOOD=$LIVE/good             # 上一次自检通过的镜像（image 文件）和配置
 LOG=$LIVE/apply.log
 PROXY=http://127.0.0.1:7890
 
@@ -106,7 +107,7 @@ log "重建 sing-box 容器"
 recreate
 if self_check; then
     cp -a "$LIVE/gateway.json" "$GOOD/gateway.json"
-    cp -a "$COMPOSE_FILE" "$GOOD/compose.yml"
+    echo "$IMAGE" > "$GOOD/image"
     log "RESULT: OK"
     exit 0
 fi
@@ -115,10 +116,11 @@ fi
 log "自检失败，最近日志："
 docker logs --tail 30 sing-box 2>&1 | sed 's/^/    /'
 log "回滚到 live/good/"
-if [[ -f "$GOOD/compose.yml" ]] && ! cmp -s "$GOOD/compose.yml" "$COMPOSE_FILE"; then
-    cp -a "$COMPOSE_FILE" "$COMPOSE_FILE.failed"
-    cp -a "$GOOD/compose.yml" "$COMPOSE_FILE"
-    log "compose.yml 已恢复，失败的版本保存在 compose.yml.failed"
+if [[ -f "$GOOD/image" ]] && [[ "$(cat "$GOOD/image")" != "$IMAGE" ]]; then
+    good_image=$(cat "$GOOD/image")
+    # compose.yml 中只有 sing-box 使用这个镜像仓库，按完整的 image 行替换
+    sed -i "s#^\(\s*image: \)$IMAGE\$#\1$good_image#" "$COMPOSE_FILE"
+    log "compose.yml 中 sing-box 的镜像已恢复为 $good_image"
 fi
 [[ -f "$GOOD/gateway.json" ]] && cp -a "$GOOD/gateway.json" "$LIVE/gateway.json"
 recreate

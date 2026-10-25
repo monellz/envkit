@@ -8,7 +8,6 @@ x-logging: &default-logging
     compress: "true"
 
 volumes:
-  caddy_config:
   sing-box-data:
 
 networks:
@@ -130,61 +129,6 @@ services:
       - ${DISK_ROOT:-${HOME}/disk}/webdav:/data
       - ./apps/webdav/htpasswd:/conf/htpasswd:ro
 
-  caddy:
-    logging: *default-logging
-    build:
-      context: ./apps/caddy
-      dockerfile: Dockerfile
-      network: host
-    container_name: caddy
-    restart: unless-stopped
-    network_mode: host
-    environment:
-      - TZ=Asia/Shanghai
-    volumes:
-      - ./apps/caddy:/etc/caddy
-      - ${DISK_ROOT:-${HOME}/disk}/webdav:/srv/webdav
-      - ${DISK_ROOT:-${HOME}/disk}/caddy/data:/data
-      - caddy_config:/config
-
-  qbit:
-    logging: *default-logging
-    image: qbittorrentofficial/qbittorrent-nox:latest
-    container_name: qbit
-    environment:
-      - QBT_LEGAL_NOTICE=confirm
-      - QBT_WEBUI_PORT=8080
-      - TZ=Asia/Shanghai
-    ports:
-      # BitTorrent 传输端口
-      # - 6881:6881/tcp
-      # - 6881:6881/udp
-      - 127.0.0.1:8080:8080
-    networks: [proxy]
-    read_only: true
-    stop_grace_period: 30m
-    tmpfs:
-      - /tmp
-    tty: true
-    volumes:
-      - ${DISK_ROOT:-${HOME}/disk}/qbit/config:/config
-      - ${DISK_ROOT:-${HOME}/disk}/qbit/downloads:/downloads
-
-  jellyfin:
-    logging: *default-logging
-    image: lscr.io/linuxserver/jellyfin:latest
-    container_name: jellyfin
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Asia/Shanghai
-    ports:
-      - 127.0.0.1:8081:8096
-    networks: [proxy]
-    volumes:
-      - ${DISK_ROOT:-${HOME}/disk}/jellyfin/config:/config
-      - ${DISK_ROOT:-${HOME}/disk}/media/movies:/data/movies
-  
   vault:
     logging: *default-logging
     image: vaultwarden/server:latest
@@ -215,8 +159,7 @@ services:
       - TZ=Asia/Shanghai
     ports:
       - 127.0.0.1:8083:3000
-      # FIXME: 外网无法直接连到这个端口，所以经 ssh 隧道访问
-      # 见 dotfiles/ssh/config 中的 pi-gitea（git remote 设为 'git remote set-url origin git@pi-gitea:user/repo.git'）
+      # 内置 ssh 服务，经 tailscale serve 的 tcp 10022 对 tailnet 开放；git remote 用 ssh 别名 gitea
       - 127.0.0.1:10022:2222
     networks: [proxy]
     volumes:
