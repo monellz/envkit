@@ -1,6 +1,5 @@
 .DS_Store
 git-crypt.key
-services/apps/sing-box/content.bin
 services/apps/sing-box/link.txt
 
 *.bak

@@ -245,3 +245,43 @@ def common_route_rules():
     # 其他海外网站走代理
     {"rule_set": "geosite-geolocation-!cn", "outbound": "proxy"},
   ]
+
+
+def hub_outbound(secrets, detour=None):
+  """hub：client/mobile 经 tailnet 把飞连流量交给 hub 的 tailnet-gateway-in（gate-plan 4.3）。
+
+  detour：Linux 上是 tailnet-direct（绑定 tailscale0），mobile 上是 tailscale endpoint。
+  """
+  outbound = {
+    "tag": "hub",
+    "type": "http",
+    "server": HUB_TAILNET_IP,
+    "server_port": 7890,
+    "username": secrets["TAILNET_GATEWAY_USER"],
+    "password": secrets["TAILNET_GATEWAY_PASSWORD"],
+  }
+  if detour:
+    outbound["detour"] = detour
+  return outbound
+
+
+def corp_fakeip_dns(config):
+  """client/mobile 上的飞连域名：本地不做真实解析，返回 fakeip，把域名原样交给 hub（gate-plan 4.4）。
+
+  飞连内网域名可能只有在公司内网 DNS 里才有记录，本地解析会失败或拿到错误地址；
+  用 fakeip 后，TUN 收到连接时能从 fakeip 还原出域名，再按域名路由到 hub。
+  """
+  config["dns"]["servers"].append(
+    {"tag": "dns-fakeip", "type": "fakeip", "inet4_range": FAKEIP_CIDR[0], "inet6_range": FAKEIP_CIDR[1]})
+  # 放在 tailnet-domain 之后、clash_mode 之前；只有 A/AAAA 查询返回 fakeip
+  config["dns"]["rules"].insert(1, {
+    "domain": CORP_DOMAIN, "domain_suffix": CORP_DOMAIN_SUFFIX,
+    "query_type": ["A", "AAAA"], "server": "dns-fakeip",
+  })
+  # fakeip 和域名的对应关系存进 cache.db，重启后已有连接的 fakeip 仍能还原
+  config["experimental"]["cache_file"]["store_fakeip"] = True
+
+
+def local_in():
+  """本机代理端口（mixed = http + socks5），给命令行程序显式指定代理用。"""
+  return {"type": "mixed", "tag": "local-in", "listen": "127.0.0.1", "listen_port": 7890}
