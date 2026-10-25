@@ -9,6 +9,8 @@
 #   sudo bash install_sing_box.sh disable      # 卸载 launchd：停止 sing-box（回滚用）
 #
 # install 时要下载 GitHub release：先在当前 shell 执行 `proxy` 设置代理，再用 sudo -E 保留环境变量。
+# 下载慢时可以先用浏览器下载 release 包，再用 SING_BOX_TARBALL 指定本地文件（同样会校验 sha256）：
+#   sudo SING_BOX_TARBALL=~/Downloads/sing-box-1.14.4-darwin-amd64.tar.gz bash install_sing_box.sh install
 # 建议 install 之后、enable 之前，先前台试运行（见 README.md）。
 set -euo pipefail
 
@@ -44,9 +46,14 @@ install_binary() {
     tarball=sing-box-$VERSION-darwin-$arch.tar.gz
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' RETURN
-    info "下载 $tarball"
-    curl -fL --max-time 300 -o "$tmp/$tarball" \
-        "https://github.com/SagerNet/sing-box/releases/download/v$VERSION/$tarball"
+    if [[ -n "${SING_BOX_TARBALL:-}" ]]; then
+        info "使用本地文件 $SING_BOX_TARBALL"
+        cp "$SING_BOX_TARBALL" "$tmp/$tarball"
+    else
+        info "下载 $tarball"
+        curl -fL --max-time 300 -o "$tmp/$tarball" \
+            "https://github.com/SagerNet/sing-box/releases/download/v$VERSION/$tarball"
+    fi
     echo "$(release_sha256 $arch)  $tmp/$tarball" | shasum -a 256 -c -
     tar -xzf "$tmp/$tarball" -C "$tmp"
     install -m 755 "$tmp/sing-box-$VERSION-darwin-$arch/sing-box" /usr/local/bin/sing-box
