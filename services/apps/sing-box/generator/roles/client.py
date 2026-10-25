@@ -1,4 +1,4 @@
-"""client 角色：Mac、Arch PC 等能跑 sing-box TUN 的电脑（gate-plan 3、4.1）。
+"""client 角色：Mac、Arch PC 等能跑 sing-box TUN 的电脑。
 
 海外流量从本机直连机场，不再绕 hub；只有飞连流量经 tailnet 交给 hub。
 macOS 和 Linux 的差异只在 TUN 参数和 tailnet 出口，所以按 platform 生成两份：
@@ -32,7 +32,7 @@ def tun_inbound(platform):
 
 
 def linux_tailnet(config):
-  """Linux：sing-box 自己访问 tailnet 时绑定 tailscale0（同 gateway，P2）。"""
+  """Linux：sing-box 自己访问 tailnet 时绑定 tailscale0（同 gateway：否则会被 auto_detect_interface 绑到物理网卡）。"""
   config["outbounds"].append({
     "tag": "tailnet-direct",
     "type": "direct",
@@ -46,9 +46,9 @@ def linux_tailnet(config):
 
 
 def macos_tailnet(config):
-  """macOS：sing-box 自己访问 tailnet 时，经内置的 tailscale endpoint（R1 的备选方案）。
+  """macOS：sing-box 自己访问 tailnet 时，经内置的 tailscale endpoint。
 
-  实测（2026-10-25）：auto_detect_interface 会把 direct 出站绑到 en0，
+  auto_detect_interface 会把 direct 出站绑到 en0，
   连 100.66.22.71 报 no route to host，访问 100.100.100.100 超时；
   而 Tailscale App 的网卡是 utunN，编号不固定，没法写死 bind_interface。
   所以 sing-box 自己作为一个 tailnet 节点（hostname macbook-sb）。
@@ -92,7 +92,7 @@ def build(nodes, secrets, platform):
   config["route"]["rules"] = common.head_route_rules() + common.ssh_forward_rules() + [
     # AI 关键域名优先，保证一定走海外
     common.ai_critical_rule(),
-    # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场（R2）
+    # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场
     {"rule_set": "tailscale-control", "outbound": "direct"},
     # tailnet 域名和地址走 Tailscale
     {"rule_set": "tailnet", "outbound": tailnet},

@@ -1,6 +1,6 @@
-"""mobile 角色：Android 手机上的 SFA（gate-plan 3、阶段 7）。
+"""mobile 角色：Android 手机上的 SFA。
 
-Android 同一时间只能运行一个 VPN（P6），所以用 sing-box 内置的 tailscale endpoint
+Android 同一时间只能运行一个 VPN，所以用 sing-box 内置的 tailscale endpoint
 替代 Tailscale App：一个 VPN 同时负责翻墙和 tailnet。
 输出：out/public/mobile.json（SFA 远程 profile）
 """

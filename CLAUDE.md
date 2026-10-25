@@ -99,7 +99,7 @@ docker compose logs -f auth-thu
 
 Services: `auth-thu` (Tsinghua network auth), `sing-box` (proxy), `corplink` (Feilian corp VPN, socks on 127.0.0.1:1088), `caddy` (reverse proxy), `qbittorrent`, `jellyfin`, `vaultwarden`, `gitea`.
 
-### sing-box (see `gate-plan.md`)
+### sing-box
 
 Official image `ghcr.io/sagernet/sing-box:v1.14.4`. Config is generated, never hand-edited:
 

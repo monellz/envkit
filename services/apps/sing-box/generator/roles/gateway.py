@@ -70,9 +70,9 @@ def build(nodes, secrets):
   })
 
   # tailnet 出口：必须绑定 tailscale0。
-  # 普通 direct 出站会被 auto_detect_interface 绑到 eth0，而 tailscale serve 只监听在 tailscale0 上（P2）
+  # 普通 direct 出站会被 auto_detect_interface 绑到 eth0，而 tailscale serve 只监听在 tailscale0 上
   # domain_resolver：出站连接前解析域名用的是 route.default_domain_resolver（dns-cn），不走 DNS 规则，
-  # 所以要单独指定 MagicDNS，否则 .ts.net 会被发到 223.5.5.5，返回空结果（预演时实测）
+  # 所以要单独指定 MagicDNS，否则 .ts.net 会被发到 223.5.5.5，返回空结果
   config["outbounds"].append({
     "tag": "tailnet-direct",
     "type": "direct",
@@ -80,7 +80,7 @@ def build(nodes, secrets):
     "domain_resolver": "dns-tailnet",
   })
 
-  # MagicDNS：.ts.net 域名交给 tailscaled 的 100.100.100.100 解析（P1）
+  # MagicDNS：.ts.net 域名交给 tailscaled 的 100.100.100.100 解析（公共 DNS 解析不了）
   config["dns"]["servers"].append(
     {"tag": "dns-tailnet", "type": "udp", "server": "100.100.100.100", "detour": "tailnet-direct"})
   config["dns"]["rules"].insert(0, {"rule_set": "tailnet-domain", "server": "dns-tailnet"})
@@ -90,7 +90,7 @@ def build(nodes, secrets):
     common.ai_critical_rule(),
     # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场
     {"rule_set": "tailscale-control", "outbound": "direct"},
-    # tailnet 域名和地址走 tailscale0（P1、P2、P5：不再被发到机场节点）
+    # tailnet 域名和地址走 tailscale0，不能被发到机场节点
     {"rule_set": "tailnet", "outbound": "tailnet-direct"},
     # 飞连认证域名须直连，避免再次送回飞连；无域名的隧道连接由 final direct 处理。
     {"domain": ["feilian.qcjzai.cn"], "outbound": "direct"},

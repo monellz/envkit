@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 安全切换 pi（gateway）上 sing-box 的配置/镜像，失败自动回滚。见 gate-plan.md 5.8。
+# 安全切换 pi（gateway）上 sing-box 的配置/镜像，失败自动回滚。
 #
 # 用法：
 #   apply.sh --detach [配置文件]   # 推荐：交给 systemd 执行，即使当前 SSH / Claude Code 会话断开也会跑完

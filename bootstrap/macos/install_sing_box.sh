@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Mac 上安装 / 启用 / 停用 sing-box（gate-plan 阶段 4）。需要 root。
+# Mac 上安装 / 启用 / 停用 sing-box。需要 root。
 #
 #   sudo -E bash install_sing_box.sh install [tailscale 状态目录]
 #                                              # 下载官方二进制、拉取配置、安装 launchd plist（不启动）
-#                                              # 可选参数：已登录的 tailscale endpoint 状态目录（例如预演时的
-#                                              # ~/.cache/sb-preflight/tailscale），复制过去后 macbook-sb 不用重新登录
+#                                              # 可选参数：已登录的 tailscale endpoint 状态目录（例如之前用普通用户
+#                                              # 试运行时留下的 ~/.cache/sb-preflight/tailscale），复制过去后 macbook-sb 不用重新登录
 #   sudo bash install_sing_box.sh enable       # 加载 launchd：启动 sing-box 和每小时同步
 #   sudo bash install_sing_box.sh disable      # 卸载 launchd：停止 sing-box（回滚用）
 #

@@ -59,7 +59,7 @@ services:
       retries: 12
       start_period: 20s
 
-  # sing-box gateway（见 gate-plan.md）：
+  # sing-box gateway：
   # - 配置由 apps/sing-box/generator 生成到 out/，只能通过 apps/sing-box/apply.sh 切换到 live/
   # - 修改镜像版本时要同步改 generator/main.py 里的 IMAGE（用于 check）
   # - 重启请用 apply.sh 或 `docker compose up -d --no-deps sing-box`，不加 --no-deps 会连带重建 auth-thu

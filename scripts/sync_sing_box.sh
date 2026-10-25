@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 客户端（Mac / Arch PC）同步 hub 发布的 sing-box 配置（gate-plan 5.7）。
+# 客户端（Mac / Arch PC）同步 hub 发布的 sing-box 配置。
 #
 # 用法：sync_sing_box.sh [配置名]
 #   配置名默认按系统选择：macOS -> client-macos，Linux -> client-linux
@@ -25,7 +25,7 @@ case "$(uname -s)" in
         NAME=${1:-client-macos}
         CONFIG=${SING_BOX_CONFIG:-/usr/local/etc/sing-box/config.json}
         BIN=${SING_BOX_BIN:-/usr/local/bin/sing-box}
-        # launchd 的 label 见 dotfiles 中的 plist（阶段 4）
+        # launchd 的 label 见 bootstrap/macos/etc/io.sagernet.sing-box.plist
         RESTART=${SING_BOX_RESTART:-launchctl kickstart -k system/io.sagernet.sing-box}
         ;;
     Linux)

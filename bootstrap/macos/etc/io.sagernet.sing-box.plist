@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  sing-box 常驻服务（gate-plan 阶段 4）。以 root 运行，因为创建 TUN 需要 root。
+  sing-box 常驻服务。以 root 运行，因为创建 TUN 需要 root。
   安装到 /Library/LaunchDaemons/，由 bootstrap/macos/install_sing_box.sh 管理。
   配置由 scripts/sync_sing_box.sh 从 hub 拉取到 /usr/local/etc/sing-box/config.json。
 -->

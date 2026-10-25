@@ -1,6 +1,6 @@
 """各角色（gateway / client / mobile）共用的配置片段。
 
-配置统一使用 sing-box 1.14 写法，不使用任何已废弃字段（见 gate-plan.md 5.2）：
+配置统一使用 sing-box 1.14 写法，不使用任何已废弃字段：
 - DNS server 用 type: udp/https，不再用旧的 address 字段
 - 用 route.default_domain_resolver 代替旧的 `outbound: any` DNS 规则
 - 用 http_clients + route.default_http_client 代替规则集的 download_detour
@@ -20,7 +20,7 @@ REMOTE_RULE_SETS = {
 }
 
 # AI 关键域名：写成内联规则，不依赖远程规则集是否下载成功，
-# 并且路由到不含 direct 的 proxy-ai，保证 pi 上的 Claude Code 一定走海外（gate-plan 5.3）
+# 并且路由到不含 direct 的 proxy-ai，保证 Claude Code 等一定走海外
 AI_CRITICAL_DOMAIN_SUFFIX = ["anthropic.com", "claude.ai", "claude.com"]
 
 # 公司（飞连）内网域名
@@ -37,7 +37,7 @@ HUB_TAILNET_IP = "100.66.22.71"
 # fakeip 地址段（client/mobile 上给飞连域名用）
 FAKEIP_CIDR = ["198.18.0.0/15", "fc00::/18"]
 
-# 自定义规则集，写成 inline，所有角色共用（gate-plan 4.5）
+# 自定义规则集，写成 inline，所有角色共用
 INLINE_RULE_SETS = [
   # tailnet：MagicDNS 域名和 tailnet 地址，只在 route 规则里用
   {"tag": "tailnet", "type": "inline", "rules": [
@@ -49,8 +49,8 @@ INLINE_RULE_SETS = [
     {"domain_suffix": [".ts.net"]},
   ]},
   # tailscale-control：Tailscale 控制服务器和 DERP 中继，直连，不让 tailnet 依赖机场。
-  # 实测（2026-10-25，pi）：controlplane/login/derpN 都能直连；log.tailscale.com 直连超时，
-  # 所以只列这几个，其余 tailscale 域名（日志上报、网站）按普通规则走代理
+  # 只列 controlplane/login/derpN：它们在国内能直连；log.tailscale.com 等直连不通，
+  # 所以其余 tailscale 域名（日志上报、网站）按普通规则走代理
   {"tag": "tailscale-control", "type": "inline", "rules": [
     {"domain": ["controlplane.tailscale.com", "login.tailscale.com"],
      "domain_regex": [r"^derp\d+[a-z]?\.tailscale\.com$"]},
@@ -72,7 +72,7 @@ def base_config(secrets, rule_set_via="direct"):
   rule_set_via：远程规则集怎么下载。
     "direct"：直连 ghfast 镜像。hub 用这个，并配合 initial_path 本地文件兜底。
     "proxy"：经机场节点直接从 GitHub 下载。client/mobile 用这个：它们所在的网络不固定，
-      实测（2026-10-25）Mac 在家用网络下直连 ghfast.top 超时，而首次启动时规则集下载失败会导致 sing-box 起不来。
+      例如家用网络下直连 ghfast.top 可能超时，而首次启动时规则集下载失败会导致 sing-box 起不来。
   """
   assert rule_set_via in ("direct", "proxy"), rule_set_via
   return {
@@ -202,11 +202,11 @@ def ai_critical_rule():
 
 
 def ssh_forward_inbound():
-  """ssh-forward-in：专门给 `ssh -R` 转发到别人服务器用的入站（gate-plan 4.2）。
+  """ssh-forward-in：专门给 `ssh -R` 转发到别人服务器用的入站。
 
   端口和服务器上的转发端口一致，都是 9870：ssh config 里写 `RemoteForward 9870 127.0.0.1:9870`，
   服务器上用 http://127.0.0.1:9870 作为代理（7890/7891 是 Clash 类软件的默认端口，容易冲突）。
-  暂不加认证（2026-10-25 决定）：共享服务器上的其他用户也能用它访问公网，
+  不加认证：共享服务器上的其他用户也能用它访问公网，
   但访问范围由 ssh_forward_rules() 限制为只能访问公网，碰不到飞连、本机端口和 tailnet。
   """
   return {
@@ -218,7 +218,7 @@ def ssh_forward_inbound():
 
 
 def ssh_forward_rules():
-  """ssh-forward-in 的访问限制：别人的服务器只能访问公网（gate-plan 5.3 第 3 条）。
+  """ssh-forward-in 的访问限制：别人的服务器只能访问公网。
 
   必须放在路由规则最前面（sniff / hijack-dns 之后）。
   """
@@ -257,7 +257,7 @@ def common_route_rules():
 
 
 def hub_outbound(secrets, detour=None):
-  """hub：client/mobile 经 tailnet 把飞连流量交给 hub 的 tailnet-gateway-in（gate-plan 4.3）。
+  """hub：client/mobile 经 tailnet 把飞连流量交给 hub 的 tailnet-gateway-in。
 
   detour：Linux 上是 tailnet-direct（绑定 tailscale0），mobile 上是 tailscale endpoint。
   """
@@ -275,7 +275,7 @@ def hub_outbound(secrets, detour=None):
 
 
 def corp_fakeip_dns(config):
-  """client/mobile 上的飞连域名：本地不做真实解析，返回 fakeip，把域名原样交给 hub（gate-plan 4.4）。
+  """client/mobile 上的飞连域名：本地不做真实解析，返回 fakeip，把域名原样交给 hub。
 
   飞连内网域名可能只有在公司内网 DNS 里才有记录，本地解析会失败或拿到错误地址；
   用 fakeip 后，TUN 收到连接时能从 fakeip 还原出域名，再按域名路由到 hub。

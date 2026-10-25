@@ -1,4 +1,4 @@
-# macOS：sing-box 客户端（gate-plan 阶段 4）
+# macOS：sing-box 客户端
 
 Mac 本机运行官方 sing-box（TUN 模式）：海外流量直连机场，飞连流量经 tailnet 交给 hub，
 tailnet 流量交给 Tailscale App。配置由 hub 生成并发布，本机只负责拉取（`scripts/sync_sing_box.sh`）。
@@ -65,10 +65,10 @@ curl -sI https://www.google.com | head -1
 curl -sI https://www.baidu.com | head -1
 curl -s https://claude.ai/cdn-cgi/trace | grep loc        # 不能是 CN
 
-# 飞连：经 hub（R1：Mac 上的 sing-box 能否连到 100.66.22.71）
+# 飞连：经 macbook-sb → hub
 curl -sI https://git.qcjzai.cn | head -1                   # 期望 302
 
-# tailnet：MagicDNS 解析（.ts.net 也会进 sing-box）和访问
+# tailnet：.ts.net 解析和访问
 dscacheutil -q host -a name hub.angora-wall.ts.net
 curl -sI https://hub.angora-wall.ts.net/ | head -1
 tailscale ping hub
@@ -80,15 +80,12 @@ curl -sI -x http://127.0.0.1:9870 https://git.qcjzai.cn | head -1         # 被�
 
 前台日志里能直接看到每个连接走了哪个出站。任何一项不通，Ctrl-C 退出即可恢复原状（再重新起 `ssh -L`）。
 
-R1（sing-box 的出站被绑到 en0，连不上 100.x）已在 2026-10-25 预演时确认，并用 `macbook-sb` 解决；
-`git.qcjzai.cn` 或 `.ts.net` 不通时，先看日志里 `endpoint/tailscale` 是否在等待登录。
+`git.qcjzai.cn` 不通时，先看日志里 `endpoint/tailscale` 是否在等待登录（`macbook-sb` 没登录时，飞连流量到不了 hub）。
 
 ### 2.5 DNS：默认用路由器，`.ts.net` 交给 Tailscale，飞连域名交给 sing-box
 
-2026-10-25 的结论：
-
 - 系统默认 DNS **保持路由器下发的**（不手动设置），需要网页登录的 Wi-Fi 原生可用。
-  默认 DNS 可能被污染，但 TLS/HTTP/QUIC 连接会被 sing-box 嗅探出域名、按域名交给代理，实测不受影响
+  默认 DNS 可能被污染，但 TLS/HTTP/QUIC 连接会被 sing-box 嗅探出域名、按域名交给代理，不受影响
 - Tailscale App 默认会接管系统 DNS，关掉：`tailscale set --accept-dns=false`
 - 按域名后缀单独指定（由 install 安装）：
   - `/etc/resolver/ts.net` → `100.100.100.100`：`.ts.net` 由 Tailscale 解析，不依赖 sing-box
@@ -121,7 +118,7 @@ TUN 是「失败即放行」的：sing-box 挂掉或重启的几秒内，TUN 网
 - 不再需要 `ssh -L 7890`（tmux `feilian` 里的 autossh 不要再启动，否则会和 sing-box 抢 7890）
 - `.zshrc` 的 `proxy()` 继续指向 `127.0.0.1:7890`，`alias claude="proxy claude"` 同样是失败即断开
 
-### 5. 回归验证（gate-plan 阶段 4 验证项）
+### 5. 回归验证
 
 - 浏览器：google、baidu、`git.qcjzai.cn`、`https://hub.angora-wall.ts.net/`
 - `git clone` 公司仓库（ssh 和 https）
