@@ -191,7 +191,7 @@ services:
     container_name: vault
     restart: unless-stopped
     environment:
-      DOMAIN: "https://166.111.238.16:8444/vault"
+      DOMAIN: "https://hub.angora-wall.ts.net/vault"
       SIGNUPS_ALLOWED: "false"
       TZ: "Asia/Shanghai"
       LOG_FILE: "/data/vault.log"

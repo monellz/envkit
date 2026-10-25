@@ -18,10 +18,10 @@ Several files are encrypted with `git-crypt`:
 - `services/apps/sing-box/secrets/**` (subscription URL, clash API secret, inbound credentials)
 - `services/secret-vars.env`
 
-To unlock: fetch the key from the self-hosted Bitwarden vault, then run `git-crypt unlock git-crypt.key`.
+To unlock: join the tailnet, fetch the key from the self-hosted Bitwarden vault, then run `git-crypt unlock git-crypt.key`.
 
 ```bash
-# Fetch git-crypt key from Bitwarden vault (self-hosted at 166.111.238.16)
+# Fetch git-crypt key from the self-hosted vaultwarden (tailnet only: https://hub.angora-wall.ts.net/vault)
 bash scripts/sync_gitcrypt.sh
 git-crypt unlock git-crypt.key
 ```
