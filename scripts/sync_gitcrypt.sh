@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# init
+# 初始化
 SHELL_DIR=$(dirname $(readlink -f "$0"))
 PROJECT_DIR=$(dirname $SHELL_DIR)
 SCRIPTS_DIR=$PROJECT_DIR/scripts

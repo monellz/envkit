@@ -1,4 +1,4 @@
-# Campus uplink. Keep the existing DHCP identities.
+# 校园网上行。沿用原有的 DHCP 身份标识
 [Match]
 Name=eth0
 

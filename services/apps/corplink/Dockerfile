@@ -1,6 +1,6 @@
-# The company's server advertises /multiple-pages/scan-login.html as its
-# scan_code_login_url. The upstream client still encodes the retired
-# /api/token/verify/view page, which opens the portal's 404 page on phones.
+# 公司服务器下发的扫码登录地址（scan_code_login_url）是 /multiple-pages/scan-login.html，
+# 而上游 corplink-headless 仍然使用已经下线的 /api/token/verify/view，手机扫码后会打开 404 页面，
+# 所以构建时打补丁替换成新地址
 FROM --platform=$BUILDPLATFORM golang:1.24 AS headless-builder
 ARG TARGETARCH
 ARG CORPLINK_HEADLESS_REV=2e9656729485274bb0162010ce6dfe486dbb4e70

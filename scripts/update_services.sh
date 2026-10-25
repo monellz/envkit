@@ -38,7 +38,7 @@ for dependency in docker jq; do
 done
 
 compose=(docker compose -f "$PROJECT_DIR/services/compose.yml")
-# Parse Compose's resolved model without loading service environment secrets.
+# 解析 Compose 合并后的配置，但不加载各服务环境变量里的密钥
 image_rows=$("${compose[@]}" config --format json --no-env-resolution | jq -r '
     .services | to_entries[]
     | select(.value.image != null and .value.build == null)
@@ -124,7 +124,7 @@ if ((!dry_run && !confirmed && ${#recreate[@]} > 0)); then
     esac
 fi
 
-# Complete every pull before recreating any service; leave dependencies alone.
+# 先把所有镜像拉取完，再逐个重建服务；不连带重建依赖的服务
 run "${compose[@]}" pull "${selected[@]}"
 if ((${#recreate[@]})); then
     run "${compose[@]}" up -d --no-deps --no-build --pull never \

@@ -5,13 +5,13 @@ SAVEHIST=100000
 setopt HIST_SAVE_NO_DUPS
 setopt INC_APPEND_HISTORY
 
-# up/down
+# 上下键按前缀搜索历史
 bindkey "\e[A" history-beginning-search-backward
 bindkey "\e[B" history-beginning-search-forward
 
 setopt autocd
 
-# vim mode
+# vim 模式
 bindkey -v
 # 让vim在插入/命令模式下都能使用backspace
 bindkey -M viins '^?' backward-delete-char
@@ -41,7 +41,7 @@ if ! ssh-add -l >/dev/null 2>&1; then
     ssh-add ~/.ssh/id_rsa 2>/dev/null
 fi
 
-# yazi
+# yazi（文件管理器）
 function y() {
     local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
     command yazi "$@" --cwd-file="$tmp"
@@ -50,7 +50,7 @@ function y() {
     rm -f -- "$tmp"
 }
 
-# proxy
+# 代理
 proxy() {
     if [[ $# -eq 0 ]]; then
         echo "Warning: No command provided. Setting proxy globally in current shell." >&2
@@ -62,14 +62,14 @@ unproxy() {
     unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY
     echo "Proxy variables unset."
 }
-# hugo/go
+# hugo / go 的模块代理
 export GOPROXY=https://goproxy.cn/,direct
 export HUGO_MODULE_PROXY=https://goproxy.cn/,direct
 
-# path
+# PATH
 export PATH=$HOME/.local/bin:$PATH
 
-# alias for app that must use proxy
+# 必须走代理的程序
 alias claude="proxy claude"
 alias codex="proxy codex"
 

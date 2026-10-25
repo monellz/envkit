@@ -1,4 +1,4 @@
-# Direct cable to a laptop: address assignment only, no gateway or DNS.
+# 网线直连笔记本：只分配地址，不下发网关和 DNS
 [Match]
 Name=eth1
 

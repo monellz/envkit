@@ -28,7 +28,7 @@ https://166.111.238.16:8444 {
     handle /dav/* {
         root * /srv/webdav
         basic_auth {
-            # docker run caddy caddy hash-password --plaintext <plain_pswd>
+            # 密码哈希生成方法：docker run caddy caddy hash-password --plaintext <明文密码>
             zrx $2a$14$UzHE/UBDwP8SmsONG82oKeHWR4UXAn4mJYavcP7WdL777HN5GK6JG
         }
         route {

@@ -8,7 +8,7 @@ SCRIPTS_DIR="$PROJECT_DIR/scripts"
 . "$SCRIPTS_DIR/log.sh"
 . "$SCRIPTS_DIR/func.sh"
 
-# Like bootstrap/arch/bootstrap.sh, system configuration runs as root.
+# 和 bootstrap/arch/bootstrap.sh 一样，系统配置需要以 root 运行
 if [[ "$EUID" -ne 0 ]]; then
     error "Run with sudo bash $SHELL_DIR/setup.sh (see README.md for SSH migration)."
     exit 1
@@ -20,7 +20,7 @@ done
 ip link show eth0 >/dev/null
 ip link show eth1 >/dev/null
 
-# Keep one complete snapshot in addition to the shared copy() per-file backups.
+# 除了 copy() 对单个文件的备份外，再保留一份完整快照
 snapshot_dir="/var/backups/pi4b-network-$(date +%Y%m%d-%H%M%S)"
 mkdir -m 700 "$snapshot_dir"
 for path in /etc/systemd/network /etc/systemd/networkd.conf.d \
@@ -35,7 +35,7 @@ systemctl is-enabled NetworkManager dhcpcd dnsmasq systemd-networkd \
     > "$snapshot_dir/unit-states.txt" 2>&1 || true
 info "Network backup: $snapshot_dir"
 
-# Stop the old DHCP clients/server before handing interfaces to networkd.
+# 把网卡交给 networkd 之前，先停掉原来的 DHCP 客户端和服务端
 for unit in NetworkManager.service dhcpcd.service dnsmasq.service; do
     if systemctl cat "$unit" >/dev/null 2>&1; then
         systemctl stop "$unit"
@@ -50,14 +50,14 @@ for path in \
     systemd/networkd.conf.d/20-external-routing.conf \
     sysctl.d/90-nonlocal-bind.conf \
     resolv.conf; do
-    # Preserve a resolver symlink as a symlink backup before copying a plain file.
+    # resolv.conf 如果是软链接，先把软链接本身备份，再复制普通文件
     if [[ "$path" == resolv.conf && -L /etc/resolv.conf ]]; then
         backup /etc/resolv.conf
     fi
     copy "$SHELL_DIR/etc/$path" "/etc/$path"
 done
 
-# Remove addresses/routes left by the misconfigured DHCP server, if present.
+# 清理错误的 DHCP 服务器下发、残留下来的地址和路由（如果有）
 python3 - <<'PY'
 import ipaddress, json, subprocess
 bad_subnet = ipaddress.ip_network("192.168.31.0/24")
