@@ -1,0 +1,5 @@
+# 安装到 /etc/resolver/ts.net：只有 *.ts.net 的查询交给 Tailscale 的 MagicDNS（100.100.100.100）。
+# 配合 `tailscale set --accept-dns=false`：Tailscale 不再接管系统默认 DNS，
+# 普通域名的查询回到默认 DNS，进入 TUN 后由 sing-box 处理（不被污染，飞连域名得到 fakeip）；
+# .ts.net 仍由 Tailscale App 直接解析，不依赖 sing-box 是否在运行。
+nameserver 100.100.100.100

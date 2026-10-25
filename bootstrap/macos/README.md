@@ -82,6 +82,25 @@ curl -sI -x http://127.0.0.1:7891 https://www.google.com | head -1        # 407
 R1（sing-box 的出站被绑到 en0，连不上 100.x）已在 2026-10-25 预演时确认，并用 `macbook-sb` 解决；
 `git.qcjzai.cn` 或 `.ts.net` 不通时，先看日志里 `endpoint/tailscale` 是否在等待登录。
 
+### 2.5 DNS：Tailscale 只负责 `.ts.net`
+
+Tailscale App 默认接管系统 DNS（100.100.100.100），而 100.x 的路由属于 Tailscale（比 TUN 的路由更具体），
+所以所有 DNS 查询都会绕过 sing-box，由 Tailscale 转发给路由器，结果会被污染（2026-10-25 实测
+www.google.com 解析成 157.240.7.20）。处理方法（hub 上 Tailscale 本来就没有接管 DNS，原理相同）：
+
+```bash
+tailscale set --accept-dns=false     # 默认 DNS 不再交给 Tailscale；查询进入 TUN 后由 sing-box 处理
+# /etc/resolver/ts.net 由 install 安装：*.ts.net 仍交给 100.100.100.100，sing-box 没在运行时也能解析
+```
+
+验证：
+
+```bash
+dscacheutil -q host -a name www.google.com     # 和 dig @10.255.255.254 的结果一致，不是 157.240.x
+dscacheutil -q host -a name git.qcjzai.cn      # 198.18.x（fakeip）
+dscacheutil -q host -a name hub.angora-wall.ts.net   # 100.66.22.71
+```
+
 ### 3. 启用 launchd
 
 ```bash

@@ -93,6 +93,10 @@ cmd_install() {
     sed "s#__ENVKIT__#$ENVKIT#g" "$SHELL_DIR/etc/$SYNC_LABEL.plist" > "$DAEMONS/$SYNC_LABEL.plist"
     chown root:wheel "$DAEMONS/$SYNC_LABEL.plist"; chmod 644 "$DAEMONS/$SYNC_LABEL.plist"
     install -m 644 "$SHELL_DIR/etc/newsyslog-sing-box.conf" /etc/newsyslog.d/sing-box.conf
+
+    # .ts.net 单独交给 Tailscale；默认 DNS 交给 sing-box（还需要 tailscale set --accept-dns=false，见 README）
+    mkdir -p /etc/resolver
+    install -m 644 "$SHELL_DIR/etc/resolver-ts.net" /etc/resolver/ts.net
     ok "安装完成（尚未启动）。前台试运行：sudo sing-box run -c /usr/local/etc/sing-box/config.json -D /usr/local/var/lib/sing-box"
 }
 
