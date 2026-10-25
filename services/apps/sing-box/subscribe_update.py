@@ -175,6 +175,14 @@ def generate_singbox_config(nodes):
     ],
     "outbounds": [
       {
+        "tag": "feilian",
+        "type": "socks",
+        "server": "127.0.0.1",
+        "server_port": 1088, # match compose.yml
+        "version": "5",
+        "network": "tcp"
+      },
+      {
         "tag": "proxy",
         "type": "selector",
         "outbounds": [
@@ -251,6 +259,18 @@ def generate_singbox_config(nodes):
         {
           "action": "hijack-dns",
           "protocol" : "dns",
+        },
+        {
+          # 飞连认证域名须直连，避免再次送回飞连；无域名的隧道连接由末尾 direct 规则处理。
+          "domain": ["feilian.qcjzai.cn"],
+          "action": "route",
+          "outbound": "direct",
+        },
+        {
+          "domain": ["qcjzai.cn"],
+          "domain_suffix": [".qcjzai.cn"],
+          "action": "route",
+          "outbound": "feilian",
         },
         {
             "ip_is_private": True, # 本地链接走direct
