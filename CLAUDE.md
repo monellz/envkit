@@ -15,7 +15,8 @@ Personal Arch Linux environment management repo. Contains:
 Several files are encrypted with `git-crypt`:
 - `dotfiles/ssh/config`
 - `services/apps/auth-thu/auth-thu.json`
-- `services/apps/sing-box/sing-box.json`
+- `services/apps/sing-box/sing-box.json` (legacy config, pre-refactor)
+- `services/apps/sing-box/secrets/**` (subscription URL, clash API secret, inbound credentials)
 - `services/secret-vars.env`
 
 To unlock: fetch the key from the self-hosted Bitwarden vault, then run `git-crypt unlock git-crypt.key`.
@@ -91,13 +92,27 @@ docker compose up -d
 docker compose up -d caddy
 
 # Rebuild after Dockerfile changes
-docker compose build sing-box && docker compose up -d sing-box
+docker compose build caddy && docker compose up -d caddy
 
 # View logs
 docker compose logs -f auth-thu
 ```
 
-Services: `auth-thu` (Tsinghua network auth), `sing-box` (proxy), `caddy` (reverse proxy), `qbittorrent`, `jellyfin`, `vaultwarden`, `gitea`.
+Services: `auth-thu` (Tsinghua network auth), `sing-box` (proxy), `corplink` (Feilian corp VPN, socks on 127.0.0.1:1088), `caddy` (reverse proxy), `qbittorrent`, `jellyfin`, `vaultwarden`, `gitea`.
+
+### sing-box (see `gate-plan.md`)
+
+Official image `ghcr.io/sagernet/sing-box:v1.14.4`. Config is generated, never hand-edited:
+
+```bash
+cd services/apps/sing-box
+python3 -m generator --role gateway [--content content.bin] [--fetch-rule-sets]   # writes out/, runs sing-box check
+./apply.sh --detach        # switch out/gateway.json -> live/ via systemd; self-checks, auto-rolls back to live/good/
+```
+
+- Claude Code on the pi goes through `127.0.0.1:7890` — **never restart sing-box any other way than `apply.sh`**, and never run `docker compose up --force-recreate sing-box` without `--no-deps` (it would recreate auth-thu, whose deauth step logs the pi off the campus network).
+- `out/` and `live/` are gitignored (they contain node passwords). `live/apply.log` has the switch history.
+- When bumping the image, change both `compose.yml` and `IMAGE` in `generator/main.py`.
 
 The `DISK_ROOT` env var controls where persistent data is stored (defaults to `~/disk`).
 

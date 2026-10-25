@@ -4,3 +4,8 @@ services/apps/sing-box/content.bin
 services/apps/sing-box/link.txt
 
 *.bak
+
+# sing-box 生成结果和线上配置（含节点和密码，不提交）
+services/apps/sing-box/out/
+services/apps/sing-box/live/
+__pycache__/

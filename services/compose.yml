@@ -9,6 +9,7 @@ x-logging: &default-logging
 
 volumes:
   caddy_config:
+  sing-box-data:
 
 networks:
   proxy:
@@ -58,23 +59,24 @@ services:
       retries: 12
       start_period: 20s
 
+  # sing-box gateway（见 gate-plan.md）：
+  # - 配置由 apps/sing-box/generator 生成到 out/，只能通过 apps/sing-box/apply.sh 切换到 live/
+  # - 修改镜像版本时要同步改 generator/main.py 里的 IMAGE（用于 check）
+  # - 重启请用 apply.sh 或 `docker compose up -d --no-deps sing-box`，不加 --no-deps 会连带重建 auth-thu
   sing-box:
     logging: *default-logging
-    build:
-      context: ./apps/sing-box
-      dockerfile: Dockerfile
-      network: host
+    image: ghcr.io/sagernet/sing-box:v1.14.4
     container_name: sing-box
     network_mode: host
     restart: always
+    command: ["run", "-c", "/conf/gateway.json", "-D", "/var/lib/sing-box"]
     volumes:
-      - ./apps/sing-box:/conf
+      - ./apps/sing-box/live:/conf:ro       # 线上配置和首次启动用的规则集（live/srs）
+      - sing-box-data:/var/lib/sing-box     # cache.db：规则集缓存、selector 的选择
     devices:
       - /dev/net/tun
     cap_add:
       - NET_ADMIN
-    environment:
-      - CONFIG_PATH=/conf/sing-box.json
     depends_on:
       auth-thu:
         condition: service_started
