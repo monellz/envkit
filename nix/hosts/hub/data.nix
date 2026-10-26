@@ -7,11 +7,18 @@
 
 let
   dataDisk = "/mnt/disk";
-  # /mnt/disk/<名字> -> /var/lib/<名字>
-  dirs = [ "gitea" "vaultwarden" "webdav" ];
+  # /mnt/disk/<名字> -> /var/lib/<名字>，以及各自的属主（服务用户）
+  dirs = {
+    gitea = "gitea";
+    vaultwarden = "vaultwarden";
+    webdav = "webdav";
+  };
 in
 {
-  fileSystems = lib.genAttrs (map (d: "/var/lib/${d}") dirs) (target: {
+  # 开机时把数据目录递归改成对应服务用户所有：原来在 docker 里以 root 或 uid 1000 运行，属主不一致
+  systemd.tmpfiles.rules = lib.mapAttrsToList (dir: user: "Z /var/lib/${dir} - ${user} ${user} -") dirs;
+
+  fileSystems = lib.genAttrs (map (d: "/var/lib/${d}") (lib.attrNames dirs)) (target: {
     device = "${dataDisk}/${baseNameOf target}";
     fsType = "none";
     options = [ "bind" "nofail" ];

@@ -27,6 +27,7 @@
         corplink-service = final.callPackage ./pkgs/corplink/service.nix { };
         corplink-headless = final.callPackage ./pkgs/corplink/headless.nix { };
         corplink-image = final.callPackage ./pkgs/corplink { };
+        hub-boot = final.callPackage ./pkgs/hub-boot { };
         unstable = import nixpkgs-unstable {
           inherit (final.stdenv.hostPlatform) system;
         };
