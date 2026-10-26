@@ -7,3 +7,6 @@ git-crypt.key
 services/apps/sing-box/out/
 services/apps/sing-box/live/
 __pycache__/
+
+# vim 交换文件
+.*.sw[a-p]
