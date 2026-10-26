@@ -76,7 +76,7 @@ def build(nodes, secrets, platform):
     tun_inbound(platform),
     # 本机代理端口：给命令行程序显式指定代理（.zshrc 的 proxy()），兼容原来 ssh -L 的用法
     common.local_in(),
-    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网
+    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网和飞连内网域名
     common.ssh_forward_inbound(),
   ]
 
@@ -89,7 +89,7 @@ def build(nodes, secrets, platform):
   config["dns"]["rules"].insert(0, {"rule_set": "tailnet-domain", "server": "dns-tailnet"})
   common.corp_fakeip_dns(config)
 
-  config["route"]["rules"] = common.head_route_rules() + common.ssh_forward_rules() + [
+  config["route"]["rules"] = common.head_route_rules() + common.ssh_forward_rules("hub") + [
     # AI 关键域名优先，保证一定走海外
     common.ai_critical_rule(),
     # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场

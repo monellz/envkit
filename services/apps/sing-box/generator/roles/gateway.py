@@ -45,7 +45,7 @@ def build(nodes, secrets):
       "listen": "127.0.0.1",
       "listen_port": 7890,
     },
-    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网
+    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网和飞连内网域名
     common.ssh_forward_inbound(),
     # 给其他 tailnet 设备（Mac、手机等）用的代理入口，主要用于访问飞连内网。
     # 只监听 tailnet IP，公网（eth0）访问不到；开机时 tailscaled 可能还没起来，
@@ -85,7 +85,7 @@ def build(nodes, secrets):
     {"tag": "dns-tailnet", "type": "udp", "server": "100.100.100.100", "detour": "tailnet-direct"})
   config["dns"]["rules"].insert(0, {"rule_set": "tailnet-domain", "server": "dns-tailnet"})
 
-  config["route"]["rules"] = common.head_route_rules() + common.ssh_forward_rules() + [
+  config["route"]["rules"] = common.head_route_rules() + common.ssh_forward_rules("corplink") + [
     # AI 关键域名优先，保证一定走海外
     common.ai_critical_rule(),
     # Tailscale 控制服务器 / DERP 直连，tailnet 不依赖机场

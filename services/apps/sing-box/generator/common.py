@@ -206,8 +206,8 @@ def ssh_forward_inbound():
 
   端口和服务器上的转发端口一致，都是 9870：ssh config 里写 `RemoteForward 9870 127.0.0.1:9870`，
   服务器上用 http://127.0.0.1:9870 作为代理（7890/7891 是 Clash 类软件的默认端口，容易冲突）。
-  不加认证：共享服务器上的其他用户也能用它访问公网，
-  但访问范围由 ssh_forward_rules() 限制为只能访问公网，碰不到飞连、本机端口和 tailnet。
+  不加认证：共享服务器上的其他用户也能用它，
+  访问范围由 ssh_forward_rules() 限制为公网和飞连内网域名，碰不到本机端口、局域网和 tailnet。
   """
   return {
     "type": "mixed",
@@ -217,14 +217,21 @@ def ssh_forward_inbound():
   }
 
 
-def ssh_forward_rules():
-  """ssh-forward-in 的访问限制：别人的服务器只能访问公网。
+def ssh_forward_rules(corp_outbound):
+  """ssh-forward-in 的访问限制：别人的服务器只能访问公网和飞连内网域名。
 
   必须放在路由规则最前面（sniff / hijack-dns 之后）。
+  corp_outbound 是本角色访问飞连内网的出站（gateway 是 corplink，client 是 hub）。
+  WARN: 9870 没有认证，放行飞连域名后，共享服务器上的任何用户都能经由这个转发访问飞连内网。
+  这是临时放开；长期应改成带认证的独立入站，或恢复对飞连域名的 reject。
   """
   return [
-    # 1. 飞连内网域名直接拒绝
-    {"inbound": "ssh-forward-in", "domain": CORP_DOMAIN, "domain_suffix": CORP_DOMAIN_SUFFIX, "action": "reject"},
+    # 1. WARN: 无认证放行飞连内网，见上方说明。
+    #    飞连内网域名按域名直接交给飞连出站，不进入后面的解析和 IP 限制：
+    #    飞连域名解析出来多是私有地址，会被第 3 步拒绝。
+    #    只放行域名，不放行内网 IP，所以直接用 IP 访问飞连内网仍会被拒绝
+    {"inbound": "ssh-forward-in", "domain": CORP_DOMAIN, "domain_suffix": CORP_DOMAIN_SUFFIX,
+     "outbound": corp_outbound},
     # 2. 先把域名解析成 IP。否则对域名目标，后面的 IP 规则不会生效，
     #    用一个解析到 127.0.0.1 的域名（如 localtest.me）就能绕过限制
     {"inbound": "ssh-forward-in", "action": "resolve"},
