@@ -11,6 +11,7 @@
     ./auth-thu.nix
     ./tailscale.nix
     ./sing-box.nix
+    ./corplink.nix
   ];
 
   networking.hostName = "hub";

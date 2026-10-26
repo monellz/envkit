@@ -1,0 +1,14 @@
+公司服务器下发的扫码登录地址（scan_code_login_url）是 /multiple-pages/scan-login.html，
+而上游 corplink-headless 仍然使用已经下线的 /api/token/verify/view，手机扫码后会打开 404 页面。
+
+--- a/pkg/headless/login.go
++++ b/pkg/headless/login.go
+@@ -148,7 +148,7 @@
+ }
+ 
+ func (s *loginState) printLoginToken(ctx context.Context, cli State, token string) error {
+-	url, err := cli.Url("/api/token/verify/view", map[string]string{"token": token})
++	url, err := cli.Url("/multiple-pages/scan-login.html", map[string]string{"token": token})
+ 	if err != nil {
+ 		return fmt.Errorf("failed to printLoginToken: %w", err)
+ 	}

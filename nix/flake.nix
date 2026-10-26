@@ -23,6 +23,10 @@
         sing-box = final.callPackage ./pkgs/sing-box.nix { };
         sing-box-rule-sets = final.callPackage ./pkgs/sing-box-rule-sets.nix { };
         sing-box-update-nodes = final.callPackage ./pkgs/sing-box-update-nodes { };
+        corplink-base-image = final.callPackage ./pkgs/corplink/base-image.nix { };
+        corplink-service = final.callPackage ./pkgs/corplink/service.nix { };
+        corplink-headless = final.callPackage ./pkgs/corplink/headless.nix { };
+        corplink-image = final.callPackage ./pkgs/corplink { };
         unstable = import nixpkgs-unstable {
           inherit (final.stdenv.hostPlatform) system;
         };
