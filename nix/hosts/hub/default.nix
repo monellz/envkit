@@ -12,6 +12,10 @@
     ./tailscale.nix
     ./sing-box.nix
     ./corplink.nix
+    ./data.nix
+    ./gitea.nix
+    ./vaultwarden.nix
+    ./webdav.nix
   ];
 
   networking.hostName = "hub";
