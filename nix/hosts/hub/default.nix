@@ -9,6 +9,7 @@
     ./secrets.nix
     ./network.nix
     ./auth-thu.nix
+    ./tailscale.nix
   ];
 
   networking.hostName = "hub";

@@ -4,6 +4,8 @@
   inputs = {
     # 稳定分支；升级时改这里，再执行 nix flake update
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # 少数需要比稳定分支更新版本的软件包（通过 pkgs.unstable.<名字> 使用）
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     # 树莓派 4 的硬件支持（设备树、固件等）
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     # nixos-hardware 自带的 nixpkgs 只用于它自己的检查，这里统一用我们的，避免多下载一份
@@ -13,11 +15,14 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, sops-nix, ... }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, nixos-hardware, sops-nix, ... }:
     let
       # 自定义软件包，所有主机共用
       overlay = final: prev: {
         auth-thu = final.callPackage ./pkgs/auth-thu.nix { };
+        unstable = import nixpkgs-unstable {
+          inherit (final.stdenv.hostPlatform) system;
+        };
       };
     in
     {

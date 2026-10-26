@@ -112,7 +112,7 @@ in
     };
   };
 
-  # 防火墙：只放行 ssh；eth1（直连笔记本）视为可信。
+  # 防火墙：只放行 ssh；eth1（直连笔记本）视为可信（tailscale0 见 tailscale.nix）。
   # sing-box 的 auto_redirect 和 Docker 会另外写 nftables 规则，这里不干涉它们
   networking.firewall = {
     enable = true;
