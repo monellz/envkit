@@ -1,0 +1,14 @@
+# sops 加密规则：每个密钥文件能被哪些 age 密钥解密。
+# 修改密钥：在 hub 上执行 `nix shell nixpkgs#sops -c sops secrets/hub.yaml`（使用 ~/.config/sops/age/keys.txt）
+# 增减接收方后，执行 `sops updatekeys secrets/hub.yaml` 重新加密。
+keys:
+  # 管理密钥：私钥在 hub 的 ~/.config/sops/age/keys.txt，另有离线备份
+  - &admin age19p2jey7tnas6nhrzv8xz9wyhy009q0z2vcwwuc3culh2d7820f0s2rx80h
+  # hub 主机：由 /etc/ssh/ssh_host_ed25519_key 推导（ssh-to-age），开机时 sops-nix 用它解密
+  - &hub age14v44dxn6h876u0kpuqumyt6fgvwj2d0y9c48yqmw70fnqcn25vtsa6rsas
+creation_rules:
+  - path_regex: secrets/hub\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *hub
