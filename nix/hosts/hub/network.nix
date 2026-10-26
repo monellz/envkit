@@ -116,6 +116,9 @@ in
   # sing-box 的 auto_redirect 和 Docker 会另外写 nftables 规则，这里不干涉它们
   networking.firewall = {
     enable = true;
+    # 反向路径检查用宽松模式：sing-box 的策略路由和 tailscale 都会让回包走和来包不同的网卡，
+    # 严格模式会把这些包丢掉
+    checkReversePath = "loose";
     allowedTCPPorts = [ 3333 ];
     trustedInterfaces = [ "eth1" ];
   };

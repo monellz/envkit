@@ -15,6 +15,7 @@ let
     "/gitea" = "http://127.0.0.1:8083"; # gitea 路由在根路径，ROOT_URL 的 /gitea/ 只用于生成链接
     "/vault" = "http://127.0.0.1:8082/vault"; # vaultwarden 的路由挂在 /vault 下
     "/dav" = "http://127.0.0.1:8084/dav"; # rclone serve webdav --baseurl /dav
+    "/sing-box" = "/run/secrets/rendered/sing-box-public"; # 发布给客户端的 sing-box 配置（sops 模板，见 sing-box.nix）
   };
 
   # 对 tailnet 开放的 TCP 端口
