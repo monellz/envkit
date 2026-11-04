@@ -12,6 +12,7 @@
 #   SING_BOX_CONFIG  本地配置文件路径
 #   SING_BOX_BIN     sing-box 可执行文件（用于 check）
 #   SING_BOX_RESTART 重启 sing-box 的命令
+#   SING_BOX_FALLBACK_PROXY 直连失败时改用的代理（macOS 默认 sing-box 的 7890，Linux 默认不用）
 set -euo pipefail
 
 SCRIPTS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -27,12 +28,17 @@ case "$(uname -s)" in
         BIN=${SING_BOX_BIN:-/usr/local/bin/sing-box}
         # launchd 的 label 见 bootstrap/macos/etc/io.sagernet.sing-box.plist
         RESTART=${SING_BOX_RESTART:-launchctl kickstart -k system/io.sagernet.sing-box}
+        # 直连失败时改走 sing-box 的本机代理：.ts.net 由 /etc/resolver/ts.net 交给 Tailscale App 解析，
+        # App 没运行时直连会解析超时；sing-box 内置的 tailscale endpoint（macbook-sb）自己能连到 hub
+        FALLBACK_PROXY=${SING_BOX_FALLBACK_PROXY:-http://127.0.0.1:7890}
         ;;
     Linux)
         NAME=${1:-client-linux}
         CONFIG=${SING_BOX_CONFIG:-/etc/sing-box/config.json}
         BIN=${SING_BOX_BIN:-sing-box}
         RESTART=${SING_BOX_RESTART:-docker restart sing-box}
+        # Linux 经 tailscale0 直连，不需要后备
+        FALLBACK_PROXY=${SING_BOX_FALLBACK_PROXY:-}
         ;;
     *)
         error "unsupported OS: $(uname -s)"; exit 1 ;;
@@ -41,9 +47,14 @@ esac
 TMP=$(mktemp)
 trap 'rm -f "$TMP"' EXIT
 
-# 1. 下载。经 Tailscale 直连 hub，不走任何 HTTP 代理（sing-box 挂了也能更新）
+# 1. 下载。先经 Tailscale 直连 hub，不走任何 HTTP 代理（sing-box 挂了也能更新）；
+#    失败再经 sing-box 的本机代理（Tailscale App 没运行时）
 info "下载 $BASE_URL/$NAME.json"
-curl -fsS --noproxy '*' --max-time 30 -o "$TMP" "$BASE_URL/$NAME.json"
+if ! curl -fsS --noproxy '*' --max-time 30 -o "$TMP" "$BASE_URL/$NAME.json"; then
+    [[ -n "$FALLBACK_PROXY" ]] || exit 1
+    warn "直连失败，改经 $FALLBACK_PROXY 下载"
+    curl -fsS -x "$FALLBACK_PROXY" --max-time 30 -o "$TMP" "$BASE_URL/$NAME.json"
+fi
 
 # 2. 用本机的 sing-box 检查，版本不一致导致的不兼容在这里就会暴露
 "$BIN" check -c "$TMP"
