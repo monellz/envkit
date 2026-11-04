@@ -20,7 +20,7 @@ sing-box 把飞连流量转给 hub（100.66.22.71）时需要走 tailnet，但�
 | 二进制 | `/usr/local/bin/sing-box`（v1.14.4，和 hub 同版本） |
 | 配置 | `/usr/local/etc/sing-box/config.json`（来自 `https://hub.angora-wall.ts.net/sing-box/client-macos.json`） |
 | 工作目录 | `/usr/local/var/lib/sing-box`（cache.db） |
-| 日志 | `/usr/local/var/log/sing-box.log`、`sing-box-sync.log`（newsyslog 轮转） |
+| 日志 | `/usr/local/var/log/sing-box.log`（`rotate_sing_box_log.sh` 每 10 分钟检查，超过 10MB 复制后清空）、`sing-box-sync.log`（newsyslog 轮转） |
 | launchd | `io.sagernet.sing-box`（常驻）、`io.sagernet.sing-box-sync`（每小时同步） |
 | 本机端口 | `127.0.0.1:7890`（local-in，无认证）、`127.0.0.1:9870`（ssh-forward-in，无认证，只能访问公网；`ssh -R` 转发到服务器用） |
 

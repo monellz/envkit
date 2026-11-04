@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  每 10 分钟检查一次 sing-box.log，超过 10MB 就轮转（bootstrap/macos/rotate_sing_box_log.sh）。
+  sing-box.log 不能交给 newsyslog，原因见脚本开头。
+  __ENVKIT__ 在安装时替换成本机 envkit 仓库的绝对路径。
+  轮转记录写进 sing-box-sync.log（由 newsyslog 轮转），免得再多一个日志文件。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.sagernet.sing-box-logrotate</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__ENVKIT__/bootstrap/macos/rotate_sing_box_log.sh</string>
+    </array>
+    <key>StartInterval</key>
+    <integer>600</integer>
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/sing-box-sync.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/sing-box-sync.log</string>
+</dict>
+</plist>
