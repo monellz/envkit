@@ -1,3 +1,5 @@
 # 参见 https://ghostty.org/docs/help/terminfo
 shell-integration-features = sudo
 shell-integration-features = ssh-terminfo,ssh-env
+# mac上左option设置为alt
+macos-option-as-alt = left
