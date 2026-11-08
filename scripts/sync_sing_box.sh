@@ -12,8 +12,25 @@
 #   SING_BOX_CONFIG  本地配置文件路径
 #   SING_BOX_BIN     sing-box 可执行文件（用于 check）
 #   SING_BOX_RESTART 重启 sing-box 的命令
-#   SING_BOX_FALLBACK_PROXY 直连失败时改用的代理（macOS 默认 sing-box 的 7890，Linux 默认不用）
+#   SING_BOX_FALLBACK_PROXY 直连失败时改用的代理（macOS 默认当前配置里 local-in 的端口，Linux 默认不用）
 set -euo pipefail
+
+# 配置文件中 local-in 的代理地址（文件不存在或没有 local-in 时输出空）。
+# 按配置取端口而不写死，改端口时新旧配置都能正确下载和自检
+# launchd 下 PATH 里可能没有 python3，优先用 jq（macOS 自带 /usr/bin/jq）
+local_proxy() {
+    local port
+    [[ -f "$1" ]] || return 0
+    if command -v jq >/dev/null; then
+        port=$(jq -r 'first(.inbounds[]? | select(.tag == "local-in") | .listen_port) // empty' "$1" 2>/dev/null)
+    else
+        port=$(python3 -I -c 'import json,sys
+c = json.load(open(sys.argv[1]))
+print(next((i["listen_port"] for i in c.get("inbounds", []) if i.get("tag") == "local-in"), ""))' "$1" 2>/dev/null)
+    fi
+    [[ -n "$port" ]] && echo "http://127.0.0.1:$port"
+    return 0
+}
 
 SCRIPTS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 . "$SCRIPTS_DIR/color.sh"
@@ -30,7 +47,8 @@ case "$(uname -s)" in
         RESTART=${SING_BOX_RESTART:-launchctl kickstart -k system/io.sagernet.sing-box}
         # 直连失败时改走 sing-box 的本机代理：.ts.net 由 /etc/resolver/ts.net 交给 Tailscale App 解析，
         # App 没运行时直连会解析超时；sing-box 内置的 tailscale endpoint（macbook-sb）自己能连到 hub
-        FALLBACK_PROXY=${SING_BOX_FALLBACK_PROXY:-http://127.0.0.1:7890}
+        # 用当前（还在运行的旧）配置的端口
+        FALLBACK_PROXY=${SING_BOX_FALLBACK_PROXY:-$(local_proxy "$CONFIG")}
         ;;
     Linux)
         NAME=${1:-client-linux}
@@ -74,8 +92,10 @@ $RESTART
 
 # 5. 自检：claude.ai 经本机代理能访问，且出口不在国内（同 hub 上的 apply.sh）
 check_ok() {
-    local loc
-    loc=$(curl -s -x http://127.0.0.1:7890 --max-time 15 https://claude.ai/cdn-cgi/trace | sed -n 's/^loc=//p')
+    local loc proxy
+    proxy=$(local_proxy "$CONFIG")
+    [[ -n "$proxy" ]] || return 1
+    loc=$(curl -s -x "$proxy" --max-time 15 https://claude.ai/cdn-cgi/trace | sed -n 's/^loc=//p')
     [[ -n "$loc" && "$loc" != CN ]]
 }
 for _ in 1 2 3; do

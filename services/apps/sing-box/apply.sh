@@ -14,7 +14,7 @@
 #      自检失败：恢复 live/good/ 中的镜像和配置，重建容器后再自检一次。
 #      只恢复 compose.yml 里 sing-box 的 image 这一行，不覆盖整个文件，以免把其他服务的改动一起回滚
 #
-# 为什么要这么麻烦：pi 上的 Claude Code 经 127.0.0.1:7890 访问 API，sing-box 起不来时会话无法自救。
+# 为什么要这么麻烦：pi 上的 Claude Code 经 127.0.0.1:9870 访问 API，sing-box 起不来时会话无法自救。
 set -uo pipefail
 
 APP_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -23,7 +23,6 @@ COMPOSE_FILE=$SERVICES_DIR/compose.yml
 LIVE=$APP_DIR/live          # 挂载进容器的 /conf（只读）
 GOOD=$LIVE/good             # 上一次自检通过的镜像（image 文件）和配置
 LOG=$LIVE/apply.log
-PROXY=http://127.0.0.1:7890
 
 if [[ "${1:-}" == "--detach" ]]; then
     shift
@@ -58,9 +57,19 @@ recreate() {
     compose up -d --no-deps --force-recreate sing-box
 }
 
+# live/gateway.json 中 local-in 的代理地址。自检按正在运行的配置取端口，
+# 这样改端口的新配置和回滚后的旧配置都能正确自检
+local_proxy() {
+    python3 -I -c 'import json,sys
+c = json.load(open(sys.argv[1]))
+print("http://127.0.0.1:%d" % next(i["listen_port"] for i in c["inbounds"] if i.get("tag") == "local-in"))' \
+        "$LIVE/gateway.json"
+}
+
 # 自检，全部通过返回 0
 self_check() {
-    local i code country
+    local i code country PROXY
+    PROXY=$(local_proxy) || { log "  读取 local-in 端口失败"; return 1; }
     for i in 1 2 3; do
         sleep 10
         log "自检第 $i 次"
@@ -70,7 +79,7 @@ self_check() {
         fi
         # 1. Anthropic API 能连上（任意 HTTP 状态码都算，000 表示连接失败）
         code=$(curl -s -o /dev/null -w '%{http_code}' -x "$PROXY" --max-time 15 https://api.anthropic.com)
-        log "  api.anthropic.com via 7890: $code"
+        log "  api.anthropic.com via $PROXY: $code"
         [[ "$code" == 000 ]] && continue
         # 2. Claude 实际使用的出口（ai-critical -> proxy-ai）不在国内。
         #    claude.ai 在 Cloudflare 后面，/cdn-cgi/trace 会返回出口所在地 loc=XX。

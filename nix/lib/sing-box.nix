@@ -1,6 +1,6 @@
 # sing-box 配置（Nix 属性集）：各角色共用同一套规则，按角色组合。
 #
-#   gateway       hub：TUN 透明代理本机流量，提供 7890 / 9870 / tailnet 网关入口，飞连流量交给 corplink
+#   gateway       hub：TUN 透明代理本机流量，提供 9870（本机）/ 9871（ssh -R）/ tailnet 网关入口，飞连流量交给 corplink
 #   client-macos  Mac：海外直连机场，飞连经 tailnet 交给 hub；sing-box 自己的 tailnet 连接走内置 tailscale endpoint
 #   client-linux  Linux 电脑：同上，tailnet 连接绑定 tailscale0
 #   mobile        Android SFA：内置 tailscale endpoint 替代 Tailscale App（同一时间只能运行一个 VPN）
@@ -157,17 +157,18 @@ let
 
   corpRule = outbound: { domain = corpDomain; domain_suffix = corpDomainSuffix; inherit outbound; };
 
-  # 本机代理端口（mixed = http + socks5），给命令行程序显式指定代理用
-  localIn = { type = "mixed"; tag = "local-in"; listen = "127.0.0.1"; listen_port = 7890; };
+  # 本机代理端口（mixed = http + socks5），给命令行程序显式指定代理用。
+  # 所有机器统一用 9870：本机是这里，服务器上是 ssh-forward-in 转发过去的 9870
+  localIn = { type = "mixed"; tag = "local-in"; listen = "127.0.0.1"; listen_port = 9870; };
 
-  # ssh-forward-in：给 `ssh -R` 转发到别人服务器用的入站。端口和服务器上的转发端口一致（9870），
-  # ssh config 写 `RemoteForward 9870 127.0.0.1:9870`，服务器上用 http://127.0.0.1:9870 作为代理。
+  # ssh-forward-in：给 `ssh -R` 转发到别人服务器用的入站。本机监听 9871，转发到服务器上是 9870：
+  # ssh config 写 `RemoteForward 9870 127.0.0.1:9871`，服务器上和本机一样用 http://127.0.0.1:9870 作为代理。
   # 不加认证：共享服务器上的其他用户也能用，访问范围由 sshForwardRules 限制为公网和飞连内网域名
-  sshForwardIn = { type = "mixed"; tag = "ssh-forward-in"; listen = "127.0.0.1"; listen_port = 9870; };
+  sshForwardIn = { type = "mixed"; tag = "ssh-forward-in"; listen = "127.0.0.1"; listen_port = 9871; };
 
   # ssh-forward-in 的访问限制，必须放在路由规则最前面（sniff / hijack-dns 之后）。
   # corpOutbound：本角色访问飞连内网的出站（网关是 corplink，客户端是 hub）。
-  # WARN: 9870 没有认证，放行飞连域名后，共享服务器上的任何用户都能经由这个转发访问飞连内网。
+  # WARN: ssh-forward-in（本机 9871，服务器上的 9870）没有认证，放行飞连域名后，共享服务器上的任何用户都能经由这个转发访问飞连内网。
   # 这是临时放开；长期应改成带认证的独立入站，或恢复对飞连域名的 reject
   sshForwardRules = corpOutbound: [
     # 飞连内网域名按域名直接交给飞连出站，不进入后面的解析和 IP 限制（飞连域名解析出来多是私有地址，
@@ -191,7 +192,7 @@ let
     tag = "hub";
     type = "http";
     server = hubTailnetIp;
-    server_port = 7890;
+    server_port = 9870;
     username = secrets.tailnetGatewayUser;
     password = secrets.tailnetGatewayPassword;
     inherit detour;
@@ -244,7 +245,7 @@ let
           type = "mixed";
           tag = "tailnet-gateway-in";
           listen = hubTailnetIp;
-          listen_port = 7890;
+          listen_port = 9870;
           users = [{ username = secrets.tailnetGatewayUser; password = secrets.tailnetGatewayPassword; }];
         }
       ];

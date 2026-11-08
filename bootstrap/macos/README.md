@@ -10,7 +10,7 @@ sing-box 把飞连流量转给 hub（100.66.22.71）时需要走 tailnet，但�
 所以配置里内置了一个 tailscale endpoint：sing-box 进程内自带 WireGuard 和用户态网络栈，
 作为 tailnet 节点 `macbook-sb`，自己建立到 hub 的加密隧道，不依赖任何系统网卡。
 
-- 只有 sing-box 自己发起的 tailnet 连接走它（hub 出站、`.ts.net` DNS、经 7890 访问 `.ts.net`）
+- 只有 sing-box 自己发起的 tailnet 连接走它（hub 出站、`.ts.net` DNS、经 9870 访问 `.ts.net`）
 - 普通 App 直接访问 tailnet 仍由 Tailscale App（`macbook-pro`）处理，TUN 不接管 100.64/10
 - 状态（节点密钥）在 `/usr/local/var/lib/sing-box/tailscale/`；在 Tailscale 后台给 `macbook-sb`
   设置 **Disable key expiry**，否则 180 天后需要重新登录
@@ -22,7 +22,7 @@ sing-box 把飞连流量转给 hub（100.66.22.71）时需要走 tailnet，但�
 | 工作目录 | `/usr/local/var/lib/sing-box`（cache.db） |
 | 日志 | `/usr/local/var/log/sing-box.log`（`rotate_sing_box_log.sh` 每 10 分钟检查，超过 10MB 复制后清空）、`sing-box-sync.log`（newsyslog 轮转） |
 | launchd | `io.sagernet.sing-box`（常驻）、`io.sagernet.sing-box-sync`（每小时同步） |
-| 本机端口 | `127.0.0.1:7890`（local-in，无认证）、`127.0.0.1:9870`（ssh-forward-in，无认证，只能访问公网；`ssh -R` 转发到服务器用） |
+| 本机端口 | `127.0.0.1:9870`（local-in，无认证）、`127.0.0.1:9871`（ssh-forward-in，无认证，只能访问公网；`ssh -R` 转发到服务器的 9870） |
 
 ## 迁移步骤
 
@@ -30,7 +30,7 @@ sing-box 把飞连流量转给 hub（100.66.22.71）时需要走 tailnet，但�
 
 - Tailscale App 已登录，`tailscale status` 能看到 `hub`
 - envkit 仓库已更新到包含本目录的版本
-- 找到现在占用 7890 的 `ssh -L`，新的 sing-box 要用这个端口：
+- 找到现在占用 7890 的 `ssh -L`（以前的代理，换成 sing-box 后不再需要）：
 
   ```bash
   lsof -nP -iTCP:7890 -sTCP:LISTEN
@@ -73,9 +73,9 @@ dscacheutil -q host -a name hub.angora-wall.ts.net
 curl -sI https://hub.angora-wall.ts.net/ | head -1
 tailscale ping hub
 
-# 9870（ssh-forward-in）只能访问公网
-curl -sI -x http://127.0.0.1:9870 https://www.google.com | head -1        # 200
-curl -sI -x http://127.0.0.1:9870 https://git.qcjzai.cn | head -1         # 被拒绝
+# 9871（ssh-forward-in）只能访问公网
+curl -sI -x http://127.0.0.1:9871 https://www.google.com | head -1        # 200
+curl -sI -x http://127.0.0.1:9871 https://git.qcjzai.cn | head -1         # 被拒绝
 ```
 
 前台日志里能直接看到每个连接走了哪个出站。任何一项不通，Ctrl-C 退出即可恢复原状（再重新起 `ssh -L`）。
@@ -109,14 +109,20 @@ tail -f /usr/local/var/log/sing-box.log
 
 ### 4. 系统代理：保留，指向本机 sing-box
 
-**保留** HTTP/HTTPS 系统代理 `127.0.0.1:7890`（以前指向 `ssh -L`，现在是本机 sing-box 的 `local-in`）。
+**保留** HTTP/HTTPS 系统代理 `127.0.0.1:9870`（本机 sing-box 的 `local-in`；以前是 `ssh -L` 的 7890）。
+
+```bash
+sudo networksetup -setwebproxy Wi-Fi 127.0.0.1 9870
+sudo networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 9870
+```
+
 TUN 是「失败即放行」的：sing-box 挂掉或重启的几秒内，TUN 网卡消失，新连接会直接从国内发出。
 系统代理是「失败即断开」的：遵循系统代理的程序（浏览器、Claude/ChatGPT 桌面版等）在 sing-box 不可用时连接失败，
-不会漏到国内；而且代理请求自带域名，不受 DNS 污染影响。两者叠加：遵循系统代理的走 7890，其余由 TUN 接管。
+不会漏到国内；而且代理请求自带域名，不受 DNS 污染影响。两者叠加：遵循系统代理的走 9870，其余由 TUN 接管。
 
-- 系统已有的绕过列表（127.0.0.1、localhost、`*.local`、私有网段）够用；tailnet 没有绕过，经 7890 → `macbook-sb` 也能访问
-- 不再需要 `ssh -L 7890`（tmux `feilian` 里的 autossh 不要再启动，否则会和 sing-box 抢 7890）
-- `.zshrc` 的 `proxy()` 继续指向 `127.0.0.1:7890`，`alias claude="proxy claude"` 同样是失败即断开
+- 系统已有的绕过列表（127.0.0.1、localhost、`*.local`、私有网段）够用；tailnet 没有绕过，经 9870 → `macbook-sb` 也能访问
+- 不再需要 `ssh -L 7890`（tmux `feilian` 里的 autossh 不要再启动）
+- `.zshrc` 的 `proxy()` 指向 `127.0.0.1:9870`，`alias claude="proxy claude"` 同样是失败即断开
 
 ### 5. 回归验证
 

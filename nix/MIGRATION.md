@@ -57,14 +57,14 @@ tryboot 只对下一次开机生效，之后任何一次重启都回到 `config.
 - [ ] 公网 ssh 3333 可登录；主机指纹没变
 - [ ] 校园网认证：`systemctl status auth-thu` 在线；IP 仍是 166.111.238.16
 - [ ] tailscale：节点名 hub、地址 100.66.22.71；`tailscale serve status` 各路径都在
-- [ ] sing-box：`curl -x http://127.0.0.1:7890 https://claude.ai/cdn-cgi/trace` 出口不是 CN；baidu 直连正常
+- [ ] sing-box：`curl -x http://127.0.0.1:9870 https://claude.ai/cdn-cgi/trace` 出口不是 CN；baidu 直连正常
 - [ ] corplink：`podman ps` 健康；经 1088 访问 git.qcjzai.cn 正常（没有要求重新扫码）
 - [ ] gitea：网页 `/gitea/`、`git ls-remote git@gitea:...` 正常；仓库、用户都在；版本升级的数据库迁移成功
 - [ ] vaultwarden：Bitwarden 客户端能同步
 - [ ] webdav：`/dav/` 用新密码能登录，Zotero 同步正常
 - [ ] `/sing-box/` 发布的客户端配置能下载，Mac 的 `sync_sing_box.sh` 正常
-- [ ] tailnet-gateway-in（100.66.22.71:7890，带认证）可用
-- [ ] 9870：重新建立服务器的 `ssh -R` 转发后，服务器上经 9870 访问公网正常
+- [ ] tailnet-gateway-in（100.66.22.71:9870，带认证）可用
+- [ ] ssh-forward-in（hub 本机 9871）：重新建立服务器的 `ssh -R` 转发后，服务器上经 9870 访问公网正常
 - [ ] 数据目录属主已改为各服务用户（gitea / vaultwarden / webdav）
 
 ## 五、确认切换

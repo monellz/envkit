@@ -52,7 +52,7 @@ def macos_tailnet(config):
   连 100.66.22.71 报 no route to host，访问 100.100.100.100 超时；
   而 Tailscale App 的网卡是 utunN，编号不固定，没法写死 bind_interface。
   所以 sing-box 自己作为一个 tailnet 节点（hostname macbook-sb）。
-  注意：只有 sing-box 自己发起的 tailnet 连接（hub 出站、.ts.net DNS、经 7890 访问 .ts.net）走它；
+  注意：只有 sing-box 自己发起的 tailnet 连接（hub 出站、.ts.net DNS、经 9870 访问 .ts.net）走它；
   普通 App 直连 tailnet 地址时，TUN 不接管 100.64/10，仍由 Tailscale App 处理。
   首次启动时 sing-box 日志里会打印登录链接；状态保存在工作目录（-D）下的 tailscale/。
   """
@@ -76,7 +76,7 @@ def build(nodes, secrets, platform):
     tun_inbound(platform),
     # 本机代理端口：给命令行程序显式指定代理（.zshrc 的 proxy()），兼容原来 ssh -L 的用法
     common.local_in(),
-    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网和飞连内网域名
+    # 给 ssh -R 转发到别人服务器用：本机 127.0.0.1:9871，服务器上是 9870，只能访问公网和飞连内网域名
     common.ssh_forward_inbound(),
   ]
 

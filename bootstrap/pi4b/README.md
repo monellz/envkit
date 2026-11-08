@@ -82,7 +82,7 @@ docker compose -f services/compose.yml up -d --no-deps auth-thu
 docker inspect --format '{{.State.Health.Status}} {{.RestartCount}}' auth-thu
 docker logs --tail 10 auth-thu
 curl --noproxy '*' -I --max-time 10 https://www.baidu.com/
-curl -x http://127.0.0.1:7890 -I --max-time 10 https://www.google.com/generate_204
+curl -x http://127.0.0.1:9870 -I --max-time 10 https://www.google.com/generate_204
 # 在直连电脑上检查访问：
 ssh pi-local
 # macOS 查看直连接口的 DHCP 租约，应无 router / domain_name_server：

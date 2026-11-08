@@ -55,7 +55,7 @@ proxy() {
     if [[ $# -eq 0 ]]; then
         echo "Warning: No command provided. Setting proxy globally in current shell." >&2
     fi
-    https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 "$@"
+    https_proxy=http://127.0.0.1:9870 http_proxy=http://127.0.0.1:9870 "$@"
 }
 
 unproxy() {
@@ -74,8 +74,8 @@ alias claude="proxy claude"
 alias codex="proxy codex"
 
 codex-my() {
-    https_proxy=http://127.0.0.1:7890 \
-    http_proxy=http://127.0.0.1:7890 \
+    https_proxy=http://127.0.0.1:9870 \
+    http_proxy=http://127.0.0.1:9870 \
     CODEX_HOME=$HOME/.codex-my \
     codex "$@"
 }

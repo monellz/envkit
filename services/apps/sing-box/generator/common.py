@@ -204,8 +204,9 @@ def ai_critical_rule():
 def ssh_forward_inbound():
   """ssh-forward-in：专门给 `ssh -R` 转发到别人服务器用的入站。
 
-  端口和服务器上的转发端口一致，都是 9870：ssh config 里写 `RemoteForward 9870 127.0.0.1:9870`，
-  服务器上用 http://127.0.0.1:9870 作为代理（7890/7891 是 Clash 类软件的默认端口，容易冲突）。
+  本机监听 9871，转发到服务器上是 9870：ssh config 里写 `RemoteForward 9870 127.0.0.1:9871`，
+  这样所有机器（本机和服务器）的代理地址都是 http://127.0.0.1:9870，本机的 9870 是 local-in。
+  （7890/7891 是 Clash 类软件的默认端口，容易冲突，所以不用。）
   不加认证：共享服务器上的其他用户也能用它，
   访问范围由 ssh_forward_rules() 限制为公网和飞连内网域名，碰不到本机端口、局域网和 tailnet。
   """
@@ -213,7 +214,7 @@ def ssh_forward_inbound():
     "type": "mixed",
     "tag": "ssh-forward-in",
     "listen": "127.0.0.1",
-    "listen_port": 9870,
+    "listen_port": 9871,
   }
 
 
@@ -222,7 +223,7 @@ def ssh_forward_rules(corp_outbound):
 
   必须放在路由规则最前面（sniff / hijack-dns 之后）。
   corp_outbound 是本角色访问飞连内网的出站（gateway 是 corplink，client 是 hub）。
-  WARN: 9870 没有认证，放行飞连域名后，共享服务器上的任何用户都能经由这个转发访问飞连内网。
+  WARN: ssh-forward-in（本机 9871，服务器上的 9870）没有认证，放行飞连域名后，共享服务器上的任何用户都能经由这个转发访问飞连内网。
   这是临时放开；长期应改成带认证的独立入站，或恢复对飞连域名的 reject。
   """
   return [
@@ -272,7 +273,7 @@ def hub_outbound(secrets, detour=None):
     "tag": "hub",
     "type": "http",
     "server": HUB_TAILNET_IP,
-    "server_port": 7890,
+    "server_port": 9870,
     "username": secrets["TAILNET_GATEWAY_USER"],
     "password": secrets["TAILNET_GATEWAY_PASSWORD"],
   }
@@ -299,5 +300,8 @@ def corp_fakeip_dns(config):
 
 
 def local_in():
-  """本机代理端口（mixed = http + socks5），给命令行程序显式指定代理用。"""
-  return {"type": "mixed", "tag": "local-in", "listen": "127.0.0.1", "listen_port": 7890}
+  """本机代理端口（mixed = http + socks5），给命令行程序显式指定代理用。
+
+  所有机器统一用 9870：本机是这里，服务器上是 ssh-forward-in 转发过去的 9870。
+  """
+  return {"type": "mixed", "tag": "local-in", "listen": "127.0.0.1", "listen_port": 9870}

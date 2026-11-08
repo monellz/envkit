@@ -38,14 +38,9 @@ def build(nodes, secrets):
       # DNS 仍然会被路由规则里的 hijack-dns 处理。
       "dns_mode": "disabled",
     },
-    # 本机代理端口：Claude Code（http_proxy）和 Mac 的 ssh -L 都用它。mixed = http + socks5
-    {
-      "type": "mixed",
-      "tag": "local-in",
-      "listen": "127.0.0.1",
-      "listen_port": 7890,
-    },
-    # 给 ssh -R 转发到别人服务器用：127.0.0.1:9870，只能访问公网和飞连内网域名
+    # 本机代理端口 127.0.0.1:9870：Claude Code（http_proxy）用它。mixed = http + socks5
+    common.local_in(),
+    # 给 ssh -R 转发到别人服务器用：本机 127.0.0.1:9871，服务器上是 9870，只能访问公网和飞连内网域名
     common.ssh_forward_inbound(),
     # 给其他 tailnet 设备（Mac、手机等）用的代理入口，主要用于访问飞连内网。
     # 只监听 tailnet IP，公网（eth0）访问不到；开机时 tailscaled 可能还没起来，
@@ -54,7 +49,7 @@ def build(nodes, secrets):
       "type": "mixed",
       "tag": "tailnet-gateway-in",
       "listen": common.HUB_TAILNET_IP,
-      "listen_port": 7890,
+      "listen_port": 9870,
       "users": [{"username": secrets["TAILNET_GATEWAY_USER"], "password": secrets["TAILNET_GATEWAY_PASSWORD"]}],
     },
   ]

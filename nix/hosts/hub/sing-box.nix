@@ -1,13 +1,13 @@
-# sing-box 网关：TUN 透明代理本机流量；7890 给本机程序、9870 给 ssh -R 转发、100.66.22.71:7890 给 tailnet 设备。
+# sing-box 网关：TUN 透明代理本机流量；9870 给本机程序、9871 给 ssh -R 转发（服务器上是 9870）、100.66.22.71:9870 给 tailnet 设备。
 # 同时渲染发布给客户端（Mac / Linux / 手机）的配置，经 tailscale serve 的 /sing-box 发布。
 #
 # 配置结构由 lib/sing-box.nix 声明；节点和各入口的密码是密钥，不能进入 Nix store，
 # 所以配置写成 sops-nix 模板：激活时把占位符替换成 secrets/hub.yaml 中的值，渲染到 /run/secrets/rendered（内存文件系统）。
 # 机场节点的更新：nix run .#sing-box-update-nodes（写入 secrets/hub.yaml 的 sing-box/outbounds），再部署。
 #
-# hub 上的 Claude Code 经 127.0.0.1:7890 访问 API，sing-box 不可用时会话无法自救：
+# hub 上的 Claude Code 经 127.0.0.1:9870 访问 API，sing-box 不可用时会话无法自救：
 # 部署前先构建（flake checks 会用假数据跑 sing-box check），切换后检查 claude.ai 的出口
-# （curl -x http://127.0.0.1:7890 https://claude.ai/cdn-cgi/trace）。
+# （curl -x http://127.0.0.1:9870 https://claude.ai/cdn-cgi/trace）。
 { config, lib, pkgs, ... }:
 
 let

@@ -52,7 +52,7 @@ in
     extraSetFlags = [ "--accept-dns=false" ];
   };
 
-  # tailnet 内的设备可以访问 hub 上的所有端口（sing-box 的 tailnet-gateway-in 监听 100.66.22.71:7890）
+  # tailnet 内的设备可以访问 hub 上的所有端口（sing-box 的 tailnet-gateway-in 监听 100.66.22.71:9870）
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
 
   systemd.services.tailscale-serve = {
