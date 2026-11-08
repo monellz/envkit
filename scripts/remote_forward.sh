@@ -7,7 +7,7 @@ if [[ $# -ne 1 || -z "$1" || "$1" == -* ]]; then
     exit 1
 fi
 
-# 本机 sing-box 的 ssh-forward-in（127.0.0.1:9871，只能访问公网，不能访问飞连、本机端口和 tailnet），
+# 本机 sing-box 的 ssh-forward-in（127.0.0.1:9871，只能访问公网和飞连内网域名，不能访问本机端口、局域网和 tailnet），
 # 转发到服务器上的 9870；服务器上和本机一样用 http://127.0.0.1:9870 作为代理
 REMOTE_PORT=9870
 LOCAL_PORT=9871

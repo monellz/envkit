@@ -114,7 +114,7 @@ python3 -m generator --target gateway   # generate only; writes out/, runs sing-
 ```
 
 - Claude Code on the pi goes through `127.0.0.1:9870` — **never restart sing-box any other way than `apply.sh`**, and never run `docker compose up --force-recreate sing-box` without `--no-deps` (it would recreate auth-thu, whose deauth step logs the pi off the campus network).
-- Inbounds: `local-in` 127.0.0.1:9870 (no auth), `ssh-forward-in` 127.0.0.1:9871 (no auth, public internet only — `RemoteForward 9870 127.0.0.1:9871` in `dotfiles/ssh/config`). Every machine uses `http://127.0.0.1:9870`: locally it is `local-in`, on servers it is the forward. `apply.sh` / `sync_sing_box.sh` read the port from the config's `local-in`, so never hard-code it there.
+- Inbounds: `local-in` 127.0.0.1:9870 (no auth), `ssh-forward-in` 127.0.0.1:9871 (no auth, public internet plus corp (Feilian) domains — temporarily allowed, see `ssh_forward_rules`; no local ports, LAN or tailnet — `RemoteForward 9870 127.0.0.1:9871` in `dotfiles/ssh/config`). Every machine uses `http://127.0.0.1:9870`: locally it is `local-in`, on servers it is the forward. `apply.sh` / `sync_sing_box.sh` read the port from the config's `local-in`, so never hard-code it there.
 - `out/public/` (client-macos/client-linux/mobile.json) is served tailnet-only by `tailscale serve` at `https://hub.angora-wall.ts.net/sing-box/` — generating is publishing. Clients pull with `scripts/sync_sing_box.sh`.
 - The pi is `hub` in the tailnet (100.66.22.71); `tailnet-gateway-in` on 100.66.22.71:9870 lets other tailnet devices reach the corp network.
 - `out/` and `live/` are gitignored (they contain node passwords). `live/apply.log` has the switch history.

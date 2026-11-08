@@ -22,7 +22,7 @@ sing-box 把飞连流量转给 hub（100.66.22.71）时需要走 tailnet，但�
 | 工作目录 | `/usr/local/var/lib/sing-box`（cache.db） |
 | 日志 | `/usr/local/var/log/sing-box.log`（`rotate_sing_box_log.sh` 每 10 分钟检查，超过 10MB 复制后清空）、`sing-box-sync.log`（newsyslog 轮转） |
 | launchd | `io.sagernet.sing-box`（常驻）、`io.sagernet.sing-box-sync`（每小时同步） |
-| 本机端口 | `127.0.0.1:9870`（local-in，无认证）、`127.0.0.1:9871`（ssh-forward-in，无认证，只能访问公网；`ssh -R` 转发到服务器的 9870） |
+| 本机端口 | `127.0.0.1:9870`（local-in，无认证）、`127.0.0.1:9871`（ssh-forward-in，无认证，只能访问公网和飞连内网域名；`ssh -R` 转发到服务器的 9870） |
 
 ## 迁移步骤
 
@@ -73,9 +73,10 @@ dscacheutil -q host -a name hub.angora-wall.ts.net
 curl -sI https://hub.angora-wall.ts.net/ | head -1
 tailscale ping hub
 
-# 9871（ssh-forward-in）只能访问公网
+# 9871（ssh-forward-in）只能访问公网和飞连内网域名，本机端口、局域网和 tailnet 被拒绝
 curl -sI -x http://127.0.0.1:9871 https://www.google.com | head -1        # 200
-curl -sI -x http://127.0.0.1:9871 https://git.qcjzai.cn | head -1         # 被拒绝
+curl -sI -x http://127.0.0.1:9871 https://git.qcjzai.cn | head -1         # 302（飞连域名临时放行）
+curl -sI -x http://127.0.0.1:9871 http://127.0.0.1:9090 | head -1         # 被拒绝（本机端口）
 ```
 
 前台日志里能直接看到每个连接走了哪个出站。任何一项不通，Ctrl-C 退出即可恢复原状（再重新起 `ssh -L`）。
