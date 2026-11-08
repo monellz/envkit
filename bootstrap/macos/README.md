@@ -130,6 +130,9 @@ TUN 是「失败即放行」的：sing-box 挂掉或重启的几秒内，TUN 网
 - 浏览器：google、baidu、`git.qcjzai.cn`、`https://hub.angora-wall.ts.net/`
 - `git clone` 公司仓库（ssh 和 https）
 - 睡眠唤醒、切换 Wi-Fi 后自动恢复；`tailscale ping hub` 能建立直连
+  - 内置 endpoint（`macbook-sb`）睡醒后不会重新发布地址，会一直走 DERP 中继。`sing_box_wake.sh`（launchd 常驻）
+    检测到睡眠超过 2 分钟，等网络恢复后重启 sing-box（断网几秒）。记录在 `sing-box-sync.log`（`[wake]`）。
+    固定 `listen_port` 没用：家里路由器不保留端口，睡眠期间 NAT 映射过期，对外端口照样会变
 
 ## 回滚
 

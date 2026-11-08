@@ -5,7 +5,7 @@
 #                                              # 下载官方二进制、拉取配置、安装 launchd plist（不启动）
 #                                              # 可选参数：已登录的 tailscale endpoint 状态目录（例如之前用普通用户
 #                                              # 试运行时留下的 ~/.cache/sb-preflight/tailscale），复制过去后 macbook-sb 不用重新登录
-#   sudo bash install_sing_box.sh enable       # 加载 launchd：启动 sing-box、每小时同步、日志轮转
+#   sudo bash install_sing_box.sh enable       # 加载 launchd：启动 sing-box、每小时同步、日志轮转、唤醒重启
 #   sudo bash install_sing_box.sh disable      # 卸载 launchd：停止 sing-box（回滚用）
 #
 # install 时要下载 GitHub release：先在当前 shell 执行 `proxy` 设置代理，再用 sudo -E 保留环境变量。
@@ -32,6 +32,7 @@ ENVKIT=$(cd "$SHELL_DIR/../.." && pwd)
 LABEL=io.sagernet.sing-box
 SYNC_LABEL=io.sagernet.sing-box-sync
 ROTATE_LABEL=io.sagernet.sing-box-logrotate
+WAKE_LABEL=io.sagernet.sing-box-wake
 DAEMONS=/Library/LaunchDaemons
 
 [[ "$(uname -s)" == Darwin ]] || { error "只用于 macOS"; exit 1; }
@@ -96,6 +97,9 @@ cmd_install() {
     # sing-box.log 由 rotate_sing_box_log.sh 轮转（newsyslog 改名后 sing-box 仍写旧文件）
     sed "s#__ENVKIT__#$ENVKIT#g" "$SHELL_DIR/etc/$ROTATE_LABEL.plist" > "$DAEMONS/$ROTATE_LABEL.plist"
     chown root:wheel "$DAEMONS/$ROTATE_LABEL.plist"; chmod 644 "$DAEMONS/$ROTATE_LABEL.plist"
+    # 睡眠唤醒后重启 sing-box（内置 tailscale endpoint 睡醒后不重新发布地址，只能走中继）
+    sed "s#__ENVKIT__#$ENVKIT#g" "$SHELL_DIR/etc/$WAKE_LABEL.plist" > "$DAEMONS/$WAKE_LABEL.plist"
+    chown root:wheel "$DAEMONS/$WAKE_LABEL.plist"; chmod 644 "$DAEMONS/$WAKE_LABEL.plist"
     install -m 644 "$SHELL_DIR/etc/newsyslog-sing-box.conf" /etc/newsyslog.d/sing-box.conf
 
     # .ts.net 单独交给 Tailscale；默认 DNS 交给 sing-box（还需要 tailscale set --accept-dns=false，见 README）
@@ -110,14 +114,16 @@ cmd_enable() {
     launchctl bootstrap system "$DAEMONS/$LABEL.plist"
     launchctl bootstrap system "$DAEMONS/$SYNC_LABEL.plist"
     launchctl bootstrap system "$DAEMONS/$ROTATE_LABEL.plist"
+    launchctl bootstrap system "$DAEMONS/$WAKE_LABEL.plist"
     ok "已启动；日志：/usr/local/var/log/sing-box.log"
 }
 
 cmd_disable() {
+    launchctl bootout system/$WAKE_LABEL 2>/dev/null || true
     launchctl bootout system/$ROTATE_LABEL 2>/dev/null || true
     launchctl bootout system/$SYNC_LABEL 2>/dev/null || true
     launchctl bootout system/$LABEL 2>/dev/null || true
-    ok "已停止 sing-box、同步和日志轮转任务"
+    ok "已停止 sing-box 和所有辅助任务"
 }
 
 case "${1:-}" in

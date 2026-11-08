@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  常驻：Mac 睡眠唤醒后重启 sing-box，让内置 tailscale endpoint 重新探测地址、恢复直连
+  （bootstrap/macos/sing_box_wake.sh，原因见脚本开头）。
+  __ENVKIT__ 在安装时替换成本机 envkit 仓库的绝对路径。
+  记录写进 sing-box-sync.log（由 newsyslog 轮转）。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.sagernet.sing-box-wake</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>__ENVKIT__/bootstrap/macos/sing_box_wake.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/sing-box-sync.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/sing-box-sync.log</string>
+</dict>
+</plist>
